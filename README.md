@@ -8,5 +8,10 @@
 - [ ] Gather metrics (win/loss, player rank, etc)
 - [ ] This is how the jungler do. (pathing, decisions, etc.)
 
-# hopes and dreams:
+### hopes and dreams:
 - [ ] A heatmap would be nice
+
+
+## technologies involved:
+python 3.5
+postgreSQL

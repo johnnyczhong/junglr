@@ -1,0 +1,5 @@
+installed python 3.5 from python website
+installed postgreSQL.app from: https://www.postgresql.org/download/macosx/
+    followed setup instructions
+installed PyGreSQL for database management via pip
+installed Anaconda for python3.5 for data analysis tools (namely pandas)
