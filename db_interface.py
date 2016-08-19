@@ -5,9 +5,7 @@ import db_helper
 
 #in: hash of summoner info (id, name, rev_date)
 #out: boolean if player info needs to be updated
-#purpose: carries out action based on if player should be updated
-def Get_Summoner_Row(summ_id, db_conn): #optional param of db_cursor?
-    tb = 'player_data'
+def Get_Summoner_Row(summ_id, db_conn): 
     query = 'select * from player_data where summ_id = ' + str(summ_id) + ';'
     row = db_helper.Fetch(db_conn, query)
     return row
@@ -44,13 +42,11 @@ def Delete_Summoner(summ_id, db_conn):
     return deleted
 
 #return: true if summ was updated or created, false if no change
-def Check_Summoner_Status(row, api_revision_date, db_conn):
+def Update_Summoner_Decision(api_row, db_conn, db_row = ()):
     do_update = True
+    api_rev_date = api_row['revisionDate']
+    db_row = 
 
-    if row == None:
-        do_update = Create_Summoner(summ_info, db_conn)
-    elif row[2] <= api_revision_date:
+    if sql_rev_date <= api_rev_date and api_rev_date > 0:
         do_update = False
-    else:
-        do_update = Update_Summoner(summ_info, db_conn)
     return do_update

@@ -4,16 +4,20 @@
 # parse information from riot (json)
 # return parsed information to main
 
-import config #can be separated out to import only what's necessary later
+from config import api_key #can be separated out to import only what's necessary later
 import urllib.request
 import json
 
-#in: summ_name
-#out: summ_ID
-def Int_Summ_Name_to_ID(summ_name):
-    req = Build_URL('summ_name_to_id', summ_name)
+#in: list summ_name
+#out: list summ_ID
+def List_Summ_Name_to_ID(summ_name_list):
+    summ_info_string = ','.join(summ_name_list)
+    req = Build_URL('summ_name_to_id', summ_info_string)
     player_info = D_Make_Request(req)
-    return player_info[summ_name]['id']
+    summ_id_list = []
+    for summ_name in summ_name_list:
+        summ_id_list.append(player_info[summ_name]['id'])
+    return summ_id_list
 
 #in: list of summ_id
 #out: hash of summoner info
@@ -65,13 +69,13 @@ def D_Make_Request(url):
 def Build_URL(req_type, value, region = 'na'):
     url = ''
     if req_type == 'match_history':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.3/game/by-summoner/' + str(value) + '/recent?api_key=' + config.api_key
+        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.3/game/by-summoner/' + str(value) + '/recent?api_key=' + api_key
     elif req_type == 'champ_name':
-        url = 'https://global.api.pvp.net/api/lol/static-data/' + region + '/v1.2/champion/' + str(value) + '?api_key=' + config.api_key 
+        url = 'https://global.api.pvp.net/api/lol/static-data/' + region + '/v1.2/champion/' + str(value) + '?api_key=' + api_key 
     elif req_type == 'basic_summ_info':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/' + str(value) + '?api_key=' + config.api_key
+        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/' + str(value) + '?api_key=' + api_key
     elif req_type == 'summ_name_to_id':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/by-name/' + value + '?api_key=' + config.api_key
+        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/by-name/' + value + '?api_key=' + api_key
     return url
 
 
