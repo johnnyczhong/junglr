@@ -12,7 +12,7 @@ def Connect():
 
 #used for create and update queries
 #returns true if successful
-def Commit(conn, query):
+def Commit(query, conn):
     committed = False    
     try:
         with conn.cursor() as c:
@@ -25,7 +25,7 @@ def Commit(conn, query):
 
 #used for select queries
 #returns row if successful, None if not
-def Fetch(conn, query, amt = 1):
+def Fetch(query, conn, amt = 1):
     row = None
     with conn.cursor() as c:
         c.execute(query)
