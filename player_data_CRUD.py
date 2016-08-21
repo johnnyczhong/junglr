@@ -33,8 +33,6 @@ def Player_DB_Action(hash_summ_info, db_conn):
 #does player exist in database? true if yes, false if no
 def Create_Summoner_Decision(summ_id, sql_row, db_conn):
     exists = False if sql_row == [] else True
-    # if Get_Summoner_Row(summ_id, db_conn) == []:
-    #     exists = False
     return exists
 
 #in: dict of singular summ info
