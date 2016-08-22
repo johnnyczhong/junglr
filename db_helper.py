@@ -1,11 +1,12 @@
 #db helper functions
 
 from pgdb import connect
+from config import aws_db, aws_host, aws_user, aws_auth 
 
 # init connect with db
 def Connect():
     try:
-        connection = connect(database='junglr', host='localhost:5432', user='johnny')
+        connection = connect(database=aws_db, host=aws_host, user=aws_user, password=aws_auth)
     except:
         connection = False
     return connection
