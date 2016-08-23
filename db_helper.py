@@ -1,12 +1,13 @@
 #db helper functions
+# doesn't seem to function on c9.io. not sure why, but will resolve on c9 later.
 
 from pgdb import connect
-from config import aws_db, aws_host, aws_user, aws_auth 
+from config import aws_db, aws_host, aws_user, aws_pass
 
 # init connect with db
 def Connect():
     try:
-        connection = connect(database=aws_db, host=aws_host, user=aws_user, password=aws_auth)
+        connection = connect(database=aws_db, host=aws_host, user=aws_user, password=aws_pass)
     except:
         connection = False
     return connection

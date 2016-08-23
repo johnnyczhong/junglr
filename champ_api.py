@@ -29,11 +29,12 @@ def Hash_Champ_ID_to_Name(champ_hash):
 
 #in: champ ID
 #out: champ info
-def Hash_Get_Champ_Info(champ_id):
+def Hash_Get_Single_Champ_Info(champ_id):
 	req = Build_URL('champ_name', champ_id) 
 	response = D_Make_Request(req)
+	return response
 
 #in: champ ID
 #out: champ info
 def S_CID_to_CName(champ_info):
-    return response['name']
+    return champ_info['name']
