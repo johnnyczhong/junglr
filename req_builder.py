@@ -5,8 +5,7 @@
 
 from config import api_key #can be separated out to import only what's necessary later
 from urllib.request import Request, urlopen
-from urllib.request import HTTPError, URLError 
-from contextlib import closing
+from urllib.request import HTTPError, URLError
 from json import loads 
 
 #in: url request
@@ -24,20 +23,22 @@ def D_Make_Request(url):
         print('URLError occurred.')
     return non_json
 
+#there's probably a better way to do this, but I haven't found it or determined it yet.
 def Build_URL(req_type, value = '', region = 'na'):
     url = ''
+    str_value = str(value)
     if req_type == 'match_history':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.3/game/by-summoner/' + str(value) + '/recent?api_key=' + api_key
+        url = 'https://{0}.api.pvp.net/api/lol/{0}/v1.3/game/by-summoner/{1}/recent?api_key={2}'.format(region, str_value, api_key)
     elif req_type == 'champ_name':
-        url = 'https://global.api.pvp.net/api/lol/static-data/' + region + '/v1.2/champion/' + str(value) + '?api_key=' + api_key 
+        url = 'https://global.api.pvp.net/api/lol/static-data/{0}/v1.2/champion/{1}?api_key={2}'.format(region, str_value, api_key)
     elif req_type == 'basic_summ_info':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/' + str(value) + '?api_key=' + api_key
+        url = 'https://{0}.api.pvp.net/api/lol/{0}/v1.4/summoner/{1}?api_key={2}'.format(region, str_value, api_key)
     elif req_type == 'summ_name_to_id':
-        url = 'https://' + region + '.api.pvp.net/api/lol/' + region + '/v1.4/summoner/by-name/' + value + '?api_key=' + api_key
+        url = 'https://{0}.api.pvp.net/api/lol/{0}/v1.4/summoner/by-name/{1}?api_key={2}'.format(region, str_value, api_key)
     elif req_type == 'champ_name':
-        url = 'https://global.api.pvp.net/api/lol/static-data/' + region + '/v1.2/champion/' + value + '?api_key=' + api_key
+        url = 'https://global.api.pvp.net/api/lol/static-data/{0}/v1.2/champion/{1}?api_key={2}'.format(region, str_value, api_key)
     elif req_type == 'champ_data_static':
-        url ='https://global.api.pvp.net/api/lol/static-data/' + region + '/v1.2/champion?api_key=' + api_key
+        url ='https://global.api.pvp.net/api/lol/static-data/{0}/v1.2/champion?api_key={1}'.format(str_value, api_key)
     return url
 
 
