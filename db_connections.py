@@ -1,7 +1,7 @@
 #author: johnny
 #purpose: provide functions to CRUD the postgres db
 
-import db_helper
+from db_helper import Connection, Query
 
 # represents 1 player's possible interactions with the db
 # possible workflows:
@@ -13,13 +13,11 @@ import db_helper
 
 #purpose: create, read, update, or delete basic player info from db
 #	has ability to determine if 
-class player_data_CRUD():
+class Player_Data_CRUD():
 	def __init__(self, summ_id):
-		self.db_conn = db_helper.Connection()
-		#should this make its own db connection?
-		#maybe because using the same db connection for multiple purposes may cause a conflict
+		self.db_conn = Connection()
 		self.summ_id = summ_id
-		#self.sql_row = self.Read_Summ_Row()
+		self.table_affected = 'player_data'
 
 	def Get_Summ_ID(self):
 		return self.api_summ_info['id']
@@ -32,9 +30,12 @@ class player_data_CRUD():
 	def Get_API_Summ_Name(self):
 		return self.api_summ_info['name']
 
+	#read action for summoner data
 	def Read_Summ_Row(self): 
-		query = 'select * from player_data where summ_id = {0};'.format(self.summ_id)
-		row = (self.db_conn.Fetch(query))
+		action = 'select'
+		where_hash = {'summ_id' : self.summ_id}
+		select_query = Query(action, self.table_affected, where = where_hash)
+		row = (self.db_conn.Execute_Query(select_query.statement))
 		return row
 
    	#for testing. in production, you would almost never delete a record here
@@ -42,12 +43,17 @@ class player_data_CRUD():
 	#in: summ id
 	#out: true if deleted, false otherwise
 	def Delete_Summ_Row(self):
-	    delete_query = 'delete from player_data where summ_id = {0};'.format(self.summ_id)
-	    deleted = self.db_conn.Commit(delete_query)
+	    #delete_query = 'delete from player_data where summ_id = {0};'.format(self.summ_id)
+	    action = 'delete'
+	    where_hash = {'summ_id' : self.summ_id}
+	    delete_query = Query(action, self.table_affected, where = where_hash)
+	    deleted = self.db_conn.Execute_Query(delete_query.statement)
 	    if self.Read_Summ_Row() == None:
 	        deleted = True
 	    return deleted
 
+	#updates or creates based on api data vs db data
+    #return: 'update' to update, 'create' to create, 'no action' if no action
 	def Update_Create(self, api_summ_info):
 		action = 'no action'
 		self.api_summ_info = api_summ_info
@@ -63,6 +69,7 @@ class player_data_CRUD():
   			action = 'update'
 		return action
 
+	#determines if summoner db record should be created
 	def Create_Summoner_Decision(self):
 		exists = False if self.sql_row == [] else True
 		return exists
@@ -70,17 +77,49 @@ class player_data_CRUD():
 	#in: dict of singular summ info
 	#out: true if player record created, false if not
 	def Create_Summoner(self):
-	    create_query = "insert into player_data (summ_id, summ_name, revision_date) values ({0}, '{1}', {2});".format(self.summ_id, self.summ_name, self.api_rev_date)
-	    created = self.db_conn.Commit(create_query)
+	    action = 'insert'
+	    subject_hash = {'summ_id' : self.summ_id, 'summ_name' : self.summ_name, 'revision_date' : self.api_rev_date}
+	    create_query = Query(action, self.table_affected, subject = subject_hash)
+	    created = self.db_conn.Execute_Query(create_query.statement)
 	    return created
 
-
-    #return: 'update' to update, 'create' to create, 'no action' if no action
+	#determines if summoner db should be updated
 	def Update_Summoner_Decision(self):
 		update = True if self.sql_row[0].revision_date < self.api_rev_date else False
 		return update
 
 	def Update_Summoner(self):
-		update_query = "update player_data set summ_name = '{0}', revision_date = {1} where summ_id = {2};".format(self.summ_name, self.api_rev_date, self.summ_id)
-		updated = self.db_conn.Commit(update_query)
+		action = 'update'
+		subject_hash = {'summ_name' : self.summ_name, 'revision_date' : self.api_rev_date}
+		where_hash = {'summ_id' : self.summ_id}
+		update_query = Query(action, self.table_affected, where = where_hash, subject = subject_hash)
+		updated = self.db_conn.Execute_Query(update_query.statement)
 		return updated
+
+	def Add_Mains(self, main_lane, main_champ, main_role):
+		action = 'update'
+		subject_hash = {'main_champ' : main_champ, 'main_lane' : main_lane, 'main_role' : main_role}
+		where_hash = {'summ_id' : self.summ_id}
+		add_query = Query(action, self.table_affected, where = where_hash, subject = subject_hash)
+		added = self.db_conn.Execute_Query(add_query.statement)
+		return added
+
+	def Add_League(self, league, division):
+		action = 'update'
+		subject_hash = {'league' : league, 'division' : division}
+		where_hash = {'summ_id' : self.summ_id}
+		add_query = Query(action, self.table_affected, where = where_hash, subject = subject_hash)
+		added = self.db_conn.Execute_Query(add_query.statement)
+		return added
+
+class Champ_Data_CRUD():
+	def __init__(self):
+		self.db_conn = Connection()
+		self.table_affected = 'champ_data'
+
+	def champ_id_to_name(self, champ_id):
+		action = 'select'
+		where_hash = {'champ_id' : champ_id}
+		select_query = Query(action, self.table_affected, where = where_hash)
+		champ_name = (self.db_conn.Execute_Query(select_query.statement))[0].champ_name
+		return champ_name

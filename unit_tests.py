@@ -4,6 +4,7 @@ import unittest
 from config import my_summ_id
 from db_connections import player_data_CRUD
 
+
 class player_data_test_case(unittest.TestCase):
 	#standard method
 	def setUp(self):
@@ -24,7 +25,8 @@ class player_data_test_case(unittest.TestCase):
 		self.test_CRUD.Delete_Summ_Row()
 	#check row if row exists
 
-class api_call_test_case()
+class api_call_test_case(unittest.TestCase):
+
 
 if __name__ == '__main__':
 	unittest.main()

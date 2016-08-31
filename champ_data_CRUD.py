@@ -1,7 +1,7 @@
 #prog_name: champ_data_CRUD.py
 #purpose: populate values to champ_data db
 
-import db_helperc vx n
+import db_helper
 
 #workflow - update static data (champ info and stats during patch cycles)
 
