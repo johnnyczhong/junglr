@@ -1,7 +1,7 @@
 #prog_name: player_api.py
 #purpose: player data pull from riot api
 
-from req_builder import D_Make_Request, api_request
+from req_builder import api_request
 from operator import itemgetter
 from db_connections import Player_Data_CRUD, Champ_Data_CRUD
 
@@ -18,13 +18,13 @@ class Player():
     #given summoner name, determine summoner id
     def summ_name_to_id(self):
         req = api_request('summ_name_to_id', self.summ_name)
-        player_info = D_Make_Request(req.url)
+        player_info = req.make_request()
         summ_id = player_info[self.summ_name]['id']
         return summ_id
 
     def get_api_data(self):
         req = api_request('basic_summ_info', self.summ_id)
-        player_info = D_Make_Request(req.url)
+        player_info = req.make_request()
         return player_info[str(self.summ_id)]
 
     #with summoner id retrieved, determine last api revision date (date updated)
@@ -48,17 +48,21 @@ class Player():
 
     def get_league(self):
         req = api_request('league_entry', self.summ_id)
-        league_data = (D_Make_Request(req.url))[str(self.summ_id)][0]
+        league_data = (req.make_request())[str(self.summ_id)][0]
         self.league = league_data['tier']
         self.division = league_data['entries'][0]['division']
 
-    def update_player_data(self):
+    def push_update(self):
         player_db_conn = Player_Data_CRUD(self.summ_id)
-        player_db_conn.Update_Create(self.summ_api_data)
-        self.get_ranked_mains()
-        player_db_conn.Add_Mains(self.main_lane, self.get_champ_name(), self.main_role)
-        self.get_league()
-        player_db_conn.Add_League(self.league, self.division)
+        if (player_db_conn.Update_Create(self.summ_api_data) != 'no action'):
+            self.get_ranked_mains()
+            player_db_conn.Add_Mains(self.main_lane, self.get_champ_name(), self.main_role)
+            self.get_league()
+            player_db_conn.Add_League(self.league, self.division)
+
+    #want to put this through a rate limiter queue first
+    # def pull_api_data(self, api_req):
+    #     return api_req.make_request() #actually gets put into a queue.
 
     def get_champ_name(self):
         champ_name = Champ_Data_CRUD().champ_id_to_name(self.main_champ_id)
@@ -72,10 +76,16 @@ class Player_Matches():
         #TODO: begin_time and end_time
         self.match_list_basics = self.get_match_list(optional_api_params)
 
+    #game-v1.3 api endpoint
+    #pulls the same/similar data as provided by post-match screen
+    #return: list and some basic match information
+    # def get_recent_match_data(self):
+
+    #gets list of matches as specified by optional params
     #decorator to add specifity to matches retrieved?
     def get_match_list(self, optional_api_params):
         req = api_request('match_list', self.summ_id, optional_params = optional_api_params)
-        response = D_Make_Request(req.url)
+        response = req.make_request()
         return response['matches']
 
     #out: list of match ids
@@ -121,7 +131,7 @@ class Player_Matches():
     def allies_and_opponents(self):
         others_ids_string = ','.join(self.others_ids)
         req = api_request('basic_summ_info', others_ids_string)
-        others_info = D_Make_Request(req.url)
+        others_info = req.make_request()
         return others_info
 
 
@@ -133,7 +143,7 @@ class Match_Details():
 
     def get_match_details(self):
         req = api_request('match_details', self.match_id)
-        return D_Make_Request(req.url)
+        return req.make_request()
 
 
 # player make match list - representing aggregate player information (that can be obtained via match list)
@@ -142,7 +152,12 @@ class Match_Details():
     # match list make match data objects
         # match data object has data members for statistics in a single match
 
-
+# user make request to site, request added to queue
+# 
+# init queue
+# queue is evaluated
+# user inputs summoner name - requests added to queue
+# 
 
 
 

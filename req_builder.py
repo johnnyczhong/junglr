@@ -3,27 +3,30 @@
 # parse information from riot (json)
 # return parsed information to main
 
-from config import api_key #can be separated out to import only what's necessary later
+#can be separated out to import only what's necessary later
+from config import api_key 
 from urllib.request import Request, urlopen
 from urllib.request import HTTPError, URLError
 from urllib.parse import urlencode
+import urllib.response
 from json import loads 
 
 #in: url request
 #out: json object dict type for python
-def D_Make_Request(url):
-    non_json = None
-    try:
-        req = Request(url) #request object, create header?
-        print(url)
-        with urlopen(req) as f:
-            #parse json data
-            non_json = loads(f.read().decode('utf-8'))
-    except HTTPError as error:
-        print(error)
-    except URLError as error:
-        print('URLError occurred.')
-    return non_json
+# def D_Make_Request(url, headers = {}):
+#     non_json = None
+#     try:
+#         req = Request(url) #request object, create header?
+#         print(url)
+#         with urlopen(req) as f:
+#             #parse json data
+#             non_json = api_response(f).body
+#             # print(f.info())
+#     except HTTPError as error:
+#         print(error)
+#     except URLError as error:
+#         print('URLError occurred.')
+#     return non_json
 
 
 #could look into subclassing, but this will do for now.
@@ -36,6 +39,22 @@ class api_request():
         self.url = self.build_url()
         # print(self.url)
         self.headers = {}
+
+    def make_request(self):
+        non_json = None
+        try:
+            req = Request(self.url) #request object, create header?
+            print(self.url)
+            with urlopen(req) as f:
+                #parse json data
+                non_json = api_response(f).body
+                # print(f.info())
+        except HTTPError as error:
+            print(error)
+        except URLError as error:
+            print('URLError occurred.')
+        return non_json
+    
 
     def build_url(self):
         url = ''
@@ -105,8 +124,34 @@ class api_request():
         return url
 
 
+#used to parse the rate limit returned in the riot api response header: 'X-Rate-Limit-Count'
+#example: 'X-Rate-Limit-Count: 1:10,1:600'
+
+# used to handle response from http request
+class api_response():
+    def __init__(self, resp, rate_limited = True):
+        self.body = loads(resp.read().decode('utf-8'))
+        self.code = resp.getcode()
+        self.header = dict(resp.info())
+        if rate_limited:
+            self.get_rate_limits()
 
 
+    def get_rate_limits(self):
+        rl_header = 'X-Rate-Limit-Count'
+        rl_string = self.header[rl_header]
+        rl_list = [x.strip().split(',') for x in (rl_string.strip().split(':'))]
+        rl_short, rl_long = rl_list[0], rl_list[1]
+        self.short_rate_limit = self.list_str_to_int(rl_short)
+        self.long_rate_limit = self.list_str_to_int(rl_long)
+
+    def list_str_to_int(self, str_list):
+        return [int(x) for x in str_list]
+
+    # def get_short_rate_limit(
+
+
+# class Rate_Limiter_Queue():
 
 
 
