@@ -11,23 +11,6 @@ from urllib.parse import urlencode
 import urllib.response
 from json import loads 
 
-#in: url request
-#out: json object dict type for python
-# def D_Make_Request(url, headers = {}):
-#     non_json = None
-#     try:
-#         req = Request(url) #request object, create header?
-#         print(url)
-#         with urlopen(req) as f:
-#             #parse json data
-#             non_json = api_response(f).body
-#             # print(f.info())
-#     except HTTPError as error:
-#         print(error)
-#     except URLError as error:
-#         print('URLError occurred.')
-#     return non_json
-
 
 #could look into subclassing, but this will do for now.
 class api_request():
@@ -48,7 +31,6 @@ class api_request():
             with urlopen(req) as f:
                 #parse json data
                 non_json = api_response(f).body
-                # print(f.info())
         except HTTPError as error:
             print(error)
         except URLError as error:
@@ -133,9 +115,9 @@ class api_response():
         self.body = loads(resp.read().decode('utf-8'))
         self.code = resp.getcode()
         self.header = dict(resp.info())
-        if rate_limited:
+        self.rl = rate_limited
+        if self.rl:
             self.get_rate_limits()
-
 
     def get_rate_limits(self):
         rl_header = 'X-Rate-Limit-Count'
