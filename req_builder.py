@@ -2,6 +2,7 @@
 # make call to riot api
 # parse information from riot (json)
 # return parsed information to main
+# need something to be in the way of the player_api 
 
 #can be separated out to import only what's necessary later
 from config import api_key 
@@ -19,24 +20,42 @@ class api_request():
         self.required_param = str(required_param)
         self.optional_params = optional_params
         self.region = region
-        self.url = self.build_url()
-        # print(self.url)
         self.headers = {}
+        self.response_body = {}
+        self.response_code = 0
+        self.url = self.build_url()
+        self.make_request()
+
+    def set_api_data(self):
+        self.build_url()
+        self.make_request()
 
     def make_request(self):
-        non_json = None
         try:
             req = Request(self.url) #request object, create header?
             print(self.url)
             with urlopen(req) as f:
-                #parse json data
-                non_json = api_response(f).body
+                response = api_response(f)
+                self.response_body = response.body
+                self.response_code = response.code
         except HTTPError as error:
             print(error)
-        except URLError as error:
-            print('URLError occurred.')
-        return non_json
+            response = error
+            self.response_code = response.code
+        # except URLError as error:
+        #     print('URLError occurred.')
+        #     response = error
+        return response
     
+
+    # def make_request(self):
+    #     req = Request(self.url) #request object, create header?
+    #     print(self.url)
+    #     with urlopen(req) as f:
+    #         response = api_response(f)
+    #         self.response_body = response.body
+    #         self.response_code = response.code
+    #     return response
 
     def build_url(self):
         url = ''
@@ -82,7 +101,6 @@ class api_request():
         if self.req_type == 'champ_name':
             url += self.required_param
         elif self.req_type == 'champ_data_static': 
-        #doesn't need any modification, but want to ensure this is accounted for
             pass
         return url
 
