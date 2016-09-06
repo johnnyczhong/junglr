@@ -26,9 +26,8 @@ class api_request():
         self.url = self.build_url()
         self.make_request()
 
-    def set_api_data(self):
-        self.build_url()
-        self.make_request()
+    def analyze_response(self):
+        
 
     def make_request(self):
         try:

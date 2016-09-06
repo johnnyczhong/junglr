@@ -68,7 +68,7 @@ class Player():
         # league_data_req = req.make_request()
         league_data = league_data_req.response_body
         if league_data_req.response_code != 404:
-            league_data = league_data_req[str(self.summ_id)][0]
+            league_data = league_data[str(self.summ_id)][0]
             self.league = league_data['tier']
             self.division = league_data['entries'][0]['division']
         else:
@@ -159,7 +159,6 @@ class Player_Matches():
         print(api_data)
         match_list_data = api_data.response_body
         response = {}
-        # response_body = req.make_request()
         if not (api_data.response_code == 404 or match_list_data['totalGames'] == 0):
             response = match_list_data['matches']
             print(response)

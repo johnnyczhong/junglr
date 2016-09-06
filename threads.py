@@ -76,6 +76,7 @@ class player_processing(threading.Thread):
 				cv.wait_for(self.check_lock, 5)
 				func()
 				self.counter += 1
+				print(time.time())
 				cv.release()
 			self.summ.push_db_update()
 		print('done processing ' + self.summ.summ_name)
