@@ -2,6 +2,7 @@
 ## info to make you a better jungler
 
 ### todo:
+- [ ] Best practices for git!
 - [x] Make a git
 - [x] Establish at least 3 db tables
     - [x] name - player_data: pk - summ_id | summ_name, revision_date, main_lane, main_champ, main_role, league, division
