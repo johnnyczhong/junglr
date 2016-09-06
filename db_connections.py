@@ -58,7 +58,7 @@ class Player_Data_CRUD():
 		updated = self.db_conn.Execute_Query(update_query.statement)
 		return updated
 
-	def add_Mains(self, main_lane, main_champ, main_role):
+	def add_mains(self, main_lane, main_champ, main_role):
 		action = 'update'
 		subject_hash = {'main_champ' : main_champ, 'main_lane' : main_lane, 'main_role' : main_role}
 		where_hash = {'summ_id' : self.summ_id}
@@ -66,7 +66,7 @@ class Player_Data_CRUD():
 		added = self.db_conn.Execute_Query(add_query.statement)
 		return added
 
-	def add_League(self, league, division):
+	def add_league(self, league, division):
 		action = 'update'
 		subject_hash = {'league' : league, 'division' : division}
 		where_hash = {'summ_id' : self.summ_id}
