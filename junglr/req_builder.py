@@ -6,9 +6,7 @@
 
 #can be separated out to import only what's necessary later
 from config import api_key 
-from urllib.request import Request, urlopen
-from urllib.request import HTTPError, URLError
-from urllib.parse import urlencode
+import requests
 import urllib.response
 import json
 import time
@@ -19,19 +17,16 @@ class api_request():
         self.req_type = req_type
         self.required_param = urllib.parse.quote(str(required_param))
         self.optional_params = optional_params
+        self.optional_params['api_key'] = api_key
         self.region = region
         self.header = False
+        self.limits = (10, 500)
         self.rate_limited = rate_limited
         self.url = self.build_url()
         self.make_request()
 
     def make_request(self):
-        try:
-            req = Request(self.url) #request object, create header?
-            with urlopen(req) as f:
-                response = api_response(f, self.rate_limited)
-        except HTTPError as error:
-            response = api_response(error, self.rate_limited)
+        response = requests.get(self.url, params = self.optional_params) #request object, create header?
         clean_response = self.handle_response(response)
         self.response = clean_response
 
@@ -44,14 +39,32 @@ class api_request():
     # 200: return response body
     # 500: return 'Server Error'?
     def handle_response(self, response):
-        if response.code == 404:
+
+        # returns (num_calls in 10 seconds, num_calls in 600 seconds)
+        def parse_rate_limits():
+            num_calls = []
+            split1 = []
+            split0 = response.headers['X-Rate-Limit-Count'].strip().split(',')
+            for i in split0:
+                split1.append(i.strip().split(':'))
+            for i in split1:
+                num_calls.append(i[0])
+            return num_calls
+
+        if response.status_code == 404:
             abstracted = 'Not Found' # doesn't exist
-        elif response.code == 200:
-            abstracted = response.body # valid response, return body
-        elif response.code == 429 or response.code == 503 or response.code == 500:
+        elif response.status_code == 200:
+            abstracted = response.json() # valid response, return body
+            if response.headers['X-Rate-Limit-Count']:
+                rate_limits = parse_rate_limits()
+                num_rate_limits = len(rate_limits)
+                for i in range(num_rate_limits):
+                    if rate_limits[i] == self.limits[i]:
+                        time.sleep(1) 
+        elif response.status_code == 429 or response.code == 503 or response.code == 500:
             abstracted = 'Retry'
-            if response.retry_after:
-                time.sleep(response.retry_after + 1) # actual rate limiting
+            if response.headers['Retry-After']:
+                time.sleep(response.headers['Retry-After'] + 1) # secondary rate limiting, based off Riot API limits
                 print('RATE LIMITED')
             else:
                 time.sleep(1) # annoying internal server rate limiting
@@ -59,7 +72,6 @@ class api_request():
 
     def build_url(self):
         url = ''
-        query_string = urlencode(self.optional_params)
         champ_req = ['champ_name', 'champ_data_static']
         match_req = ['match_details', 'match_list']
         game_req = ['recent_games']
@@ -75,7 +87,6 @@ class api_request():
             url = self.match_url()
         elif self.req_type in league_req:
             url = self.league_url()
-        url = url + '?{0}&api_key={1}'.format(query_string, api_key)
         return url
 
     #game-v1.3
