@@ -207,7 +207,6 @@ class Player():
             if param_id not in param_dict:
                 param_dict[param_id] = {'played': 1}
             else:
-                # param_dict[param_id]['played'] = param_dict[param_id]['played'] + 1
                 param_dict[param_id]['played'] += 1
         return param_dict
 
@@ -226,14 +225,6 @@ class Player():
                 out_hash[c] = cp.deepcopy(hash_type)
             return out_hash
 
-        # def create_champ_stats_hash(stat_hash, cats):
-        #     champ_stats_hash = {}
-        #     for c in cats:
-        #         champ_stats_hash[c] = {}
-        #         for k in self.champ_id_freq_list.keys():
-        #             champ_stats_hash[c][str(k)] = cp.deepcopy(stat_hash)
-        #     return champ_stats_hash
-
         def create_base_stats_hash(stat_hash, cats):
             base_stats = {}
             for c in cats:
@@ -246,12 +237,10 @@ class Player():
         raw_data = {'anythingGoes': raw, 'championStats': raw_data_hashes}
         calculated_data = {'anythingGoes': analyzed, 'championStats': analyzed_hashes}
         raw_zeroes = {'anythingGoes': 0, 'championStats': raw_zero_hashes}
-        calc_stat_hash = self.assemble_stats_hash(calculated_data)
+        calc_stat_hash = self.assemble_stats_hash(calculated_data, raw_zeroes)
         raw_data_hash = self.assemble_stats_hash(raw_data, raw_zeroes)
         self.base_stats = create_base_stats_hash(calc_stat_hash, categories)
         self.base_raw_data = create_base_stats_hash(raw_data_hash, categories)
-        # self.champ_stats = create_champ_stats_hash(calc_stat_hash, categories)
-        # self.champ_raw_data = create_champ_stats_hash(raw_data_hash, categories)
 
     def agg_match_calculations(self):
 
@@ -282,13 +271,11 @@ class Player():
             param_dict['champ'] = participant_data['championId']
             self.update_stats(team_data, participant_data, duration, **param_dict)
         self.recursive_hash_analysis(self.base_raw_data, self.base_stats)
-        # self.recursive_hash_analysis(self.champ_raw_data, self.champ_stats)
         self.compile_player_stats()
 
     def compile_player_stats(self):
         base_stats_name = '{}Stats'.format(self.current_season)
         self.info_hash[base_stats_name] = self.base_stats
-        # self.info_hash['champ' + base_stats_name] = self.champ_stats
 
     # wanna walk through each match once and only once.
     def update_stats(self, team_data, participant_data, duration, **param_dict):
@@ -301,8 +288,6 @@ class Player():
             'at30', 'at35', 'at40', 'atEnd',)
         wlt = 'win' if team_data['winner'] else 'loss'
         champ = str(param_dict['champ']) #champId of the game
-        # wl_base_hash, total_base_hash = self.base_raw_data[wlt], self.base_raw_data['total'] #win/loss/total hash
-        # wl_champ_hash, total_champ_hash = self.champ_raw_data[wlt][champ], self.champ_raw_data['total'][champ] #win/loss/total hash for champs
         wl_hash, total_hash = self.base_raw_data[wlt], self.base_raw_data['total']
 
         # there is frame data in this match
@@ -310,7 +295,6 @@ class Player():
             tFrameData = team_data['frameData']
             pFrameData = participant_data['frameData']
             in_hashes = (wl_hash, total_hash)
-                # wl_champ_hash, total_champ_hash,)
 
             i = 0
             while i <= 7 and match_minutes > ((frame_markers[i]) + 1):
@@ -371,7 +355,7 @@ class Player():
                     stats_hash['avg'] = None
                     stats_hash['stdev'] = None
 
-    def assemble_stats_hash(self, data_points, zeroes = False):
+    def assemble_stats_hash(self, data_points, zeroes):
         participant_frame_data_list = ('jungleMinionsKilledPerFrame', 'totalGoldPerFrame', 
             'minionsKilledPerFrame', 'xpPerFrame', 'levelPerFrame',
             'jungleMinionsAdvPerFrame', 'goldAdvPerFrame', 'minionsAdvPerFrame', 
@@ -379,8 +363,6 @@ class Player():
         team_frame_data_list = ('totalGoldPerFrame', 'xpPerFrame',
             'totalLevelPerFrame', 'totalGoldAdvPerFrame',
             'xpAdvPerFrame', 'totalLevelAdvPerFrame',)
-        if not zeroes:
-            zeroes = data_points
 
         def init_frame_data_hash(params):
             frame_data_points = ('at10', 'at15', 'at20', 'at25',
@@ -415,7 +397,7 @@ class Player():
                 'atLeast30', 'atLeast35', 'atLeast40', 'longerThan40')
             game_duration = {}
             for g in game_lengths:
-                game_duration[g] = zeroes
+                game_duration[g] = cp.deepcopy(zeroes)
             return game_duration
 
         frame_data_hash = {}
@@ -423,7 +405,7 @@ class Player():
         frame_data_hash['participantFrameData'] = init_frame_data_hash(participant_frame_data_list)
         frame_data_hash['participantSummaryData'] = init_participant_summary_data()
         frame_data_hash['teamSummaryData'] = init_team_summary_data()
-        frame_data_hash['gamesPlayed'] = zeroes
+        frame_data_hash['gamesPlayed'] = cp.deepcopy(zeroes)
         frame_data_hash['gameDurations'] = init_game_lengths()
         return frame_data_hash
 
