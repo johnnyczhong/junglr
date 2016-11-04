@@ -23,7 +23,8 @@ class update_summoner(threading.Thread):
 				self.process(summ_name)
 
 	def process(self, summ_name):
-		self.summ = player.Player(summ_name, self.rate_limiter)
+		summ = player.Player(summ_name, self.rate_limiter)
+		summ.update()
 
 	# want to enqueue api calls to rate_limiter
 	# but some api calls are dependent on if the previous is successful

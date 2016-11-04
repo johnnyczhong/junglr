@@ -17,7 +17,6 @@ class Connection():
             result = db_collection.insert_one(obj_hash)
         elif type(obj_hash) == list:
             result = db_collection.insert_many(obj_hash)
-        self.connection.close()
         return result
 
     def find(self, collection, filt):
@@ -26,7 +25,6 @@ class Connection():
             result = db_collection.find_one(filt)
         elif type(filt) == list:
             result = db_collection.find_many(filt)
-        self.connection.close()
         return result
 
     def update(self, collection, filt, obj_hash, force = False):
@@ -35,7 +33,6 @@ class Connection():
             result = db_collection.update_one(filt, {'$set': obj_hash}, upsert = force)
         elif type(obj_hash) == list:
             result = db_collection.update_many(filt, {'$set': obj_hash}, upsert = force)
-        self.connection.close()
         return result
 
     def delete(self, collection, filt):
@@ -44,5 +41,7 @@ class Connection():
             result = db_collection.delete_one(filt)
         elif type(filt) == list:
             result = db_collection.delete_many(filt)
-        self.connection.close()
         return result
+
+    def close(self):
+        self.connection.close()
