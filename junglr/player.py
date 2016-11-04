@@ -16,23 +16,23 @@ summoners_collection = 'summoners'
 
 #player object
 class Player():
-    def __init__(self, summ_name, rate_limiter):
+    def __init__(self, summ_name):
         self.summ_name = ''.join(summ_name.lower().split())
         self.match_list = []
         self.player_db_row = () #named tuple
         self.current_season = config.current_season
-        self.rate_limiter = rate_limiter
         self.info_hash = {}
+        self.db_conn = mongo_helper.Connection()
 
     def read(self):
-        return 
+        return self.db_conn.find('summoners', {'summNameLower': self.summ_name})
 
-    def update(self):
+    def update(self, rate_limiter):
+        self.rate_limiter = rate_limiter
         t = threading.Thread(target=self.update_procedure)
         t.start()
 
     def update_procedure(self):
-        self.db_conn = mongo_helper.Connection()
         action = self.basic_update()
         job_list = (self.set_ranked_mains, 
             self.set_league,
