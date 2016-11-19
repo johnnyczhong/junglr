@@ -1,0 +1,72 @@
+<!-- analysis.html -->
+{% extends "layout.html" %}
+{% block body %}
+<a name="intro"></a>
+    <div class="content-section-a">
+        <div class="container">
+            <div class="row">
+            <div class="col-lg-4 col-sm-6">
+                <h2 class="summoner-name" id="summ_name">{{ summName }}</h2>
+            </div>
+            <div class="col-lg-8 col-sm-6">
+                <h2 class="summoner-stats"> {{ league }} {{ division }} / {{ mainChamp }} / {{ main_lane }} </h2>
+            </div>
+            </div>
+            <div class="row">
+            	<div class="col-lg-4 col-sm-4">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading">Graph Options</h2>
+                    <div class="btn-group" role="group">
+                        <form class="chart-selections">
+                            <label for="chart_appearance" class="btn-desc">Display Type</label>
+                            <br>
+                            <select class="form-control chart_appearance" name="chart_appearance" id="chart_appearance">
+                                <option disabled>Select One:</option>
+                                <option>Bar</option>
+                                <option>Horizontal Bar</option>
+                                <option>Stacked Bar</option>
+                            </select>
+                            <br>
+                            <label for="chart_type" class="btn-desc">Data</label>
+                            <br>
+                            <select class="form-control chart_type" name="chart_type" id="chart_type">
+                                <option disabled>Select One:</option>
+                                <option>First Dragon</option>
+                                <option>First Tower</option>
+                                <option>Gold Advantage</option>
+                            </select>
+                            <br>
+                            <label class="btn-desc" for="chart_wlt">Win/Loss Filter</label>
+                            <br>
+                            <select class="form-control chart_wlt" name="chart_wlt" id="chart_wlt">
+                                <option disabled>Select One:</option>
+                                <option>Wins</option>
+                                <option>Losses</option>
+                                <option>Total</option>
+                                <option>Wins and Losses</option>
+                                <option>All</option>
+                            </select>
+                            <br>
+                            <label for="sc_content" class="btn-desc">Selection Criteria</label>
+                            <br>
+                            <select multiple class="form-control" name="sc_content" id="sc_content">
+                            <!-- sorted list of champs by name -->
+                            {% for c in champ_list %}
+                                <option>{{ c }}</option>
+                            {% endfor %}
+                            </select>
+                            <input type=submit value=Go! onclick="javascript:redrawChart("dummy")">
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-8 col-sm-8">
+                    <div class="chart" id="chart">
+                        <embed type="image/svg+xml" src= {{ graph|safe }} alt="" />
+                    </div>
+				</div>
+                </div>
+            </div>
+            {% include "copyright.html" %}
+        </div>       
+    </div>
+{% endblock %}

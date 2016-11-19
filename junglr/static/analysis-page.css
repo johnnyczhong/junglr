@@ -1,0 +1,46 @@
+/*
+ analysis-page.css
+*/
+
+.analysis-page {
+    padding-top: 50px; /* If you're making other pages, make sure there is 50px of padding to make sure the navbar doesn't overlap content! */
+    padding-bottom: 50px;
+    text-align: center;
+    color: #f8f8f8;
+    background: url(img/intro-bg.jpg) no-repeat center center;
+    background-size: cover; 
+}
+
+.content-section-a {
+    padding-top: 50px; /* If you're making other pages, make sure there is 50px of padding to make sure the navbar doesn't overlap content! */
+    /*padding-bottom: 50px;*/
+    /*padding: 50px 0;*/
+    /*background-color: #f8f8f8;*/
+    /*background-color: white;*/
+    background: url(img/intro-bg.jpg) no-repeat center center;
+    background-size: cover; 
+    height: 100%;
+    overflow: auto;
+}
+
+.section-heading {
+	color: white;
+}
+
+.summoner-name,
+.summoner-stats {
+    text-align: center;
+    color: white;
+}
+
+.chart_appearance,
+.chart_type,
+.chart_wlt {
+    align-self: center;
+    width: auto;
+    display: inline-block;
+}
+
+.btn-desc {
+	color: white;
+}

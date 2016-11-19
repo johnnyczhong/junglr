@@ -22,48 +22,116 @@ class Player():
         self.player_db_row = () #named tuple
         self.current_season = config.current_season
         self.info_hash = {}
+        self.rate_limiter = None
         self.db_conn = mongo_helper.Connection()
 
     def read(self):
         return self.db_conn.find('summoners', {'summNameLower': self.summ_name})
 
-    def update(self, rate_limiter):
-        self.rate_limiter = rate_limiter
-        t = threading.Thread(target=self.update_procedure)
-        t.start()
-
-    def update_procedure(self):
-        action = self.basic_update()
-        job_list = (self.set_ranked_mains, 
+    # run update process in sequence
+    def update(self):
+        # self.rate_limiter = rate_limiter
+        job_list = (self.set_ranked_mains,
             self.set_league,
             self.get_full_match_details,
             self.commit_db,
             self.agg_match_calculations,
             self.commit_db)
-        if action == 'update':
-            for jobs in job_list:
-                jobs()
-            print(self.summ_name + ' done!')
-        self.db_conn.close()
+        for jobs in job_list:
+            jobs()
 
+    # commit current information in self.info_hash to database
     def commit_db(self):
         self.db_conn.update('summoners', 
             {'summId': self.info_hash['summId']}, 
             self.info_hash, 
             force = True)
 
+    # determine ranked main champs, lanes, roles
     def set_ranked_mains(self):
-        was_set = False
-        match_list_response = self.pull_match_list()
-        if match_list_response:
-            self.champ_id_to_name()
-            self.info_hash['mainChamp'] = self.calc_main_champ()
-            self.info_hash['mainLane'] = self.calc_main_lane()
-            self.info_hash['mainRole'] = self.calc_main_role() 
-            self.info_hash['matchList'] = self.get_match_list()
-            was_set = True
-        return was_set
 
+        def calc_games_played(parameter):
+            param_dict = {}
+            for matches in self.match_list:
+                param_id = matches[parameter]
+                if param_id not in param_dict:
+                    param_dict[param_id] = {'played': 1}
+                else:
+                    param_dict[param_id]['played'] += 1
+            return param_dict
+
+        def highest_freq_in_dict(freq_list):
+            return max(freq_list.items(), key = operator.itemgetter(1))[0]
+
+        def calc_main(parameter):
+            param_dict = {}
+            for matches in self.match_list:
+                param_id = matches[parameter]
+                if param_id not in param_dict:
+                    param_dict[param_id] = 1
+                else:
+                    param_dict[param_id] = param_dict[param_id] + 1
+            return param_dict
+
+        #determines lanes played frequency and most played lane
+        def calc_main_lane():
+            self.lane_freq_list = calc_main('lane')
+            games_played = calc_games_played('lane')
+            main_lane = highest_freq_in_dict(self.lane_freq_list)
+            return main_lane
+
+        def calc_main_role():
+            self.role_freq_list = calc_main('role')
+            games_played = calc_games_played('role')
+            main_role = highest_freq_in_dict(self.role_freq_list)
+            return main_role
+
+        #determines champ played frequency and most played champ
+        def calc_main_champ():
+            self.champ_id_freq_list = calc_main('champion')
+            games_played = calc_games_played('champion')
+            self.info_hash['champStats'] = self.keys_as_strings(games_played)
+            main_champ_id = highest_freq_in_dict(self.champ_id_freq_list)
+            main_champ_name = self.get_champ_name(main_champ_id)
+            return main_champ_name
+
+        #out: list of match ids
+        def get_match_list():
+            match_id_list = []
+            for matches in self.match_list:
+                match_id_list.append(matches)
+            return match_id_list
+
+
+        # was_set = False
+        # match_list_response = self.pull_match_list()
+        # if match_list_response:
+        self.champ_id_to_name()
+        self.info_hash['mainChamp'] = calc_main_champ()
+        self.info_hash['mainLane'] = calc_main_lane()
+        self.info_hash['mainRole'] = calc_main_role() 
+        self.info_hash['matchList'] = get_match_list()
+            # was_set = True
+        # return was_set
+
+    def pull_match_list(self):
+        queue_type = {
+        'rankedQueues' : 'TEAM_BUILDER_DRAFT_RANKED_5x5', 
+        'seasons' : self.current_season
+        }
+        api_data = self.make_rl_call(req_builder.api_request, 'match_list', self.info_hash['summId'], optional_params = queue_type)
+        match_list_data = api_data
+        if (match_list_data != {} and 
+            match_list_data['totalGames'] != 0):
+            self.match_list = match_list_data['matches']
+            k = 'Total_Games_{}'.format(queue_type['seasons'])
+            v = match_list_data['totalGames']
+            self.info_hash[k] = v
+        else:
+            self.match_list = None
+        return api_data
+
+    # determine ranked league statistics
     def set_league(self):
         was_set = False
         league_data_req = self.make_rl_call(req_builder.api_request, 'league_entry', self.info_hash['summId'])
@@ -74,24 +142,28 @@ class Player():
             was_set = True
         return was_set
 
+    # get each match's details, rate limited
     def get_full_match_details(self):
         for m in self.info_hash['matchList']:
             match.Match_Details(m['matchId'], self.rate_limiter)
         
     #makes api data pull for basic summoner info: id, revisionDate
     #compares api data and db data
-    def basic_update(self):
-        db_action = 'no action'
-        response_code = self.pull_player_api_data()
-        if response_code == 'Not Found':
-            db_action = 'no action'
-        else:
-            db_action = self.update_last_modified()
-        return db_action
+    # def basic_update(self):
+    #     db_action = 'no action'
+    #     response_code = self.pull_player_api_data()
+    #     if response_code == 'Not Found':
+    #         db_action = 'no action'
+    #     else:
+    #         db_action = self.update_last_modified()
+    #     return db_action
 
     def update_last_modified(self):
         self.summ_db_data = self.db_conn.find('summoners', {'summId': self.info_hash['summId']})
-        return self.create_or_update()
+        db_action = 'no action'
+        if self.summ_db_data == None or self.summ_db_data['apiRevDate'] < self.info_hash['apiRevDate']:
+            db_action = 'update'
+        return db_action
 
     def make_rl_call(self, func, *args, **kwargs):
         retry = True
@@ -115,36 +187,6 @@ class Player():
             self.info_hash['apiRevDate'] = api_data[self.summ_name]['revisionDate']
         return api_data
 
-    def create_or_update(self):
-        db_action = 'no action'
-        if self.summ_db_data == None or self.summ_db_data['apiRevDate'] < self.info_hash['apiRevDate']:
-            db_action = 'update'
-        return db_action
-
-    def pull_match_list(self):
-        queue_type = {
-        'rankedQueues' : 'TEAM_BUILDER_DRAFT_RANKED_5x5', 
-        'seasons' : self.current_season
-        }
-        api_data = self.make_rl_call(req_builder.api_request, 'match_list', self.info_hash['summId'], optional_params = queue_type)
-        match_list_data = api_data
-        if (match_list_data != {} and 
-            match_list_data['totalGames'] != 0):
-            self.match_list = match_list_data['matches']
-            k = 'Total_Games_{}'.format(queue_type['seasons'])
-            v = match_list_data['totalGames']
-            self.info_hash[k] = v
-        else:
-            self.match_list = None
-        return api_data
-
-    #out: list of match ids
-    def get_match_list(self):
-        match_id_list = []
-        for matches in self.match_list:
-            match_id_list.append(matches)
-        return match_id_list
-
     def champ_id_to_name(self):
         self.champ_mapping = self.db_conn.find('static_data', {'document_name': 'champion_info'})
 
@@ -152,6 +194,7 @@ class Player():
         champ_name = self.champ_mapping[str(champ_id)]['name']
         return champ_name
 
+    #not used currently, due to limitations of mongodb's keys
     def map_champ_freq_to_name(self, champs_played_hash):
         champ_name_freq_list = {}
         for k, v in champs_played_hash.items():
@@ -159,58 +202,14 @@ class Player():
             champ_name_freq_list[k_name] = v
         return champ_name_freq_list
 
+    # make integer keys into string versions for mongodb
     def keys_as_strings(self, hash):
         out_hash = {}
         for k, v in hash.items():
             out_hash[str(k)] = v
         return out_hash
 
-    #determines champ played frequency and most played champ
-    def calc_main_champ(self):
-        self.champ_id_freq_list = self.calc_main('champion')
-        games_played = self.calc_games_played('champion')
-        self.info_hash['champStats'] = self.keys_as_strings(games_played)
-        main_champ_id = self.highest_freq_in_dict(self.champ_id_freq_list)
-        main_champ_name = self.get_champ_name(main_champ_id)
-        return main_champ_name
-
-    #determines lanes played frequency and most played lane
-    def calc_main_lane(self):
-        self.lane_freq_list = self.calc_main('lane')
-        games_played = self.calc_games_played('lane')
-        main_lane = self.highest_freq_in_dict(self.lane_freq_list)
-        return main_lane
-
-    def calc_main_role(self):
-        self.role_freq_list = self.calc_main('role')
-        games_played = self.calc_games_played('role')
-        main_role = self.highest_freq_in_dict(self.role_freq_list)
-        return main_role
-
-    def highest_freq_in_dict(self, freq_list):
-        return max(freq_list.items(), key = operator.itemgetter(1))[0]
-
-    def calc_main(self, parameter):
-        param_dict = {}
-        for matches in self.match_list:
-            param_id = matches[parameter]
-            if param_id not in param_dict:
-                param_dict[param_id] = 1
-            else:
-                param_dict[param_id] = param_dict[param_id] + 1
-        return param_dict
-
-    def calc_games_played(self, parameter):
-        param_dict = {}
-        for matches in self.match_list:
-            param_id = matches[parameter]
-            if param_id not in param_dict:
-                param_dict[param_id] = {'played': 1}
-            else:
-                param_dict[param_id]['played'] += 1
-        return param_dict
-
-
+    # create all stat hashes for player matches
     def init_stat_hashes(self):
         categories = ('win', 'loss', 'total')
         raw = {'raw_data' : []}
@@ -242,6 +241,7 @@ class Player():
         self.base_stats = create_base_stats_hash(calc_stat_hash, categories)
         self.base_raw_data = create_base_stats_hash(raw_data_hash, categories)
 
+    # iterate over every match in mongodb this player was in and analyze results
     def agg_match_calculations(self):
 
         def get_db_match_details(match_id):
@@ -273,11 +273,12 @@ class Player():
         self.recursive_hash_analysis(self.base_raw_data, self.base_stats)
         self.compile_player_stats()
 
+    # place match analysis results into hash that will be pushed into mongodb
     def compile_player_stats(self):
         base_stats_name = '{}Stats'.format(self.current_season)
         self.info_hash[base_stats_name] = self.base_stats
 
-    # wanna walk through each match once and only once.
+    # walk through given match and compile data for match analysis
     def update_stats(self, team_data, participant_data, duration, **param_dict):
         frame_markers = [9, 14, 19, 24, 29, 34, 39, -1] #markers for frame data
         num_frame_markers = len(frame_markers)
@@ -355,6 +356,7 @@ class Player():
                     stats_hash['avg'] = None
                     stats_hash['stdev'] = None
 
+    # construct each layer for mongodb
     def assemble_stats_hash(self, data_points, zeroes):
         participant_frame_data_list = ('jungleMinionsKilledPerFrame', 'totalGoldPerFrame', 
             'minionsKilledPerFrame', 'xpPerFrame', 'levelPerFrame',

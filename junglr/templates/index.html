@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block body %}
+<a name="intro"></a>
+    <div class="intro-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                <form action="{{ url_for('process') }}" method=post>
+                    <div class="intro-message">
+                        <h1>Junglr</h1>
+                        <h3>A Player Performance Analysis Tool</h3>
+                        <div class="summoner-input">
+                            <input class="form-control input-lg summoner-text username" type=text placeholder="Summoner Name" name=username id=username>
+                        </div>
+                        <hr class="intro-divider">
+                    </div>
+                    <div class="clearfix"></div>
+                    <!-- {% include "button_row.html" %} -->
+                </form>
+                {% for message in get_flashed_messages() %}
+                    <div class=flash>{{ message }}</div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

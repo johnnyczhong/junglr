@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>JUNGLR</title>
+
+    <!-- Bootstrap Core CSS -->
+    <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.min.css') }}">
+
+    <!-- Custom CSS -->
+    <!-- <link href="css/landing-page.css" rel="stylesheet"> -->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='landing-page.css') }}">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='analysis-page.css') }}">
+
+    <!-- Custom Fonts -->
+<!--     <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- replacement script -->
+    <script type="text/javascript">
+    function ReplaceContentInContainer(id,content) {
+        var container = document.getElementById(id);
+        container.innerHTML = content;
+    }
+    function redrawChart(dummy) {
+        var username=document.getElementById("summ_name")
+        var chart_appearance=document.getElementById("chart_appearance");
+        var chart_type=document.getElementById("chart_type");
+        var chart_gwlt=document.getElementById("chart_wlt");
+        var sc_content=document.getElementById("sc_content")
+        var chart=document.getElementById("chart");
+        var clone=chart.cloneNode(true);
+        // {{ test }}
+        // var newChart={{ url_for('summoner_analysis', username=username, gtype=gtype, chart_type=chart_type, gwlt=gwlt) }};
+        var newChart={{ render_chart(summoner_name=username, chart_appearance=chart_appearance, chart_type=chart_type, chart_wlt=chart_wlt, sc_content=sc_content) }};
+        clone.setAttribute('src',(newChart|'safe'));
+        chart.parentNode.replaceChild(clone,chart);
+    }
+    </script>
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand topnav" href="/">JUNGLR</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="#about">About</a>
+                    </li>
+                    <li>
+                        <a href="#services">Services</a>
+                    </li>
+                    <li>
+                        <a href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+{% block body %}
+{% endblock %}
+
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+
+</body>
+
+</html>
