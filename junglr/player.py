@@ -30,7 +30,6 @@ class Player():
 
     # run update process in sequence
     def update(self):
-        # self.rate_limiter = rate_limiter
         job_list = (self.set_ranked_mains,
             self.set_league,
             self.get_full_match_details,
@@ -102,17 +101,12 @@ class Player():
                 match_id_list.append(matches)
             return match_id_list
 
-
-        # was_set = False
-        # match_list_response = self.pull_match_list()
         # if match_list_response:
         self.champ_id_to_name()
         self.info_hash['mainChamp'] = calc_main_champ()
         self.info_hash['mainLane'] = calc_main_lane()
         self.info_hash['mainRole'] = calc_main_role() 
         self.info_hash['matchList'] = get_match_list()
-            # was_set = True
-        # return was_set
 
     def pull_match_list(self):
         queue_type = {

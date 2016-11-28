@@ -1,0 +1,24 @@
+/*
+	contact-page.css
+*/
+
+
+.connect {
+    text-align: center;
+}
+
+.connect-buttons {
+    padding-top: 10px;
+    text-align: center;
+    margin: 0 auto;
+    display: table;
+}
+
+.connect-container {
+    padding-top: 15%;
+    padding-bottom: 20%;
+}
+
+.banner-social-buttons {
+    padding-top: 10px;
+}

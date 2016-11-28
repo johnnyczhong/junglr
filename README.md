@@ -2,13 +2,13 @@
 ## info to make you a better jungler
 
 ### todo:
-- [x] Best practices for git! (master should be production ready)
+- [x] Best practices for git!
 - [x] Make a git
 - [x] Establish at least 3 collections
     - [x] summoners (analysis)
     - [x] champions (names)
     - [x] matches (frame data and summary data)
-- [ ] Write api calls
+- [x] Write api calls
     - [x] rate limiter (don't want to exceed riot api calls)
 	- [x] summoners
 	- [x] champions
@@ -20,11 +20,9 @@
 
 ### hopes and dreams:
 - [ ] A heatmap would be nice
-- [ ] host on AWS
-- [ ] frontend website
+- [x] host on AWS
+- [x] frontend website
 
-## technologies involved:
-python 3.5
-mongoDB
-pandas (not yet used)
-AWS (not yet)
+This project uses resources from:
+StartBootStrap Landing Page: https://github.com/BlackrockDigital/startbootstrap-landing-page - A great thanks to @BlackrockDigital for their work. 
+Noisy Net: https://subtlepatterns.com/noisy-net by Tom McArdle (http://twitter.com/_mcrdl) licensed under CC BY-SA 3.0.

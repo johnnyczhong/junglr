@@ -11,6 +11,9 @@
 
     <title>JUNGLR</title>
 
+    <!-- Include Angular Core Library -->
+    <script src="{{ url_for('static', filename='js/node_modules/angular/angular.min.js') }}"></script>
+
     <!-- Bootstrap Core CSS -->
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet"> -->
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.min.css') }}">
@@ -18,8 +21,10 @@
     <!-- Custom CSS -->
     <!-- <link href="css/landing-page.css" rel="stylesheet"> -->
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='landing-page.css') }}">
-
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='analysis-page.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='contact-page.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='about-page.css') }}">
+
 
     <!-- Custom Fonts -->
 <!--     <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
@@ -33,30 +38,12 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- replacement script -->
-    <script type="text/javascript">
-    function ReplaceContentInContainer(id,content) {
-        var container = document.getElementById(id);
-        container.innerHTML = content;
-    }
-    function redrawChart(dummy) {
-        var username=document.getElementById("summ_name")
-        var chart_appearance=document.getElementById("chart_appearance");
-        var chart_type=document.getElementById("chart_type");
-        var chart_gwlt=document.getElementById("chart_wlt");
-        var sc_content=document.getElementById("sc_content")
-        var chart=document.getElementById("chart");
-        var clone=chart.cloneNode(true);
-        // {{ test }}
-        // var newChart={{ url_for('summoner_analysis', username=username, gtype=gtype, chart_type=chart_type, gwlt=gwlt) }};
-        var newChart={{ render_chart(summoner_name=username, chart_appearance=chart_appearance, chart_type=chart_type, chart_wlt=chart_wlt, sc_content=sc_content) }};
-        clone.setAttribute('src',(newChart|'safe'));
-        chart.parentNode.replaceChild(clone,chart);
-    }
-    </script>
+
+    <!-- redraw function -->
 
 </head>
 
-<body>
+<body ng-app="chartApp">
 
     <!-- Navigation -->
     <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
@@ -72,26 +59,16 @@
                 <a class="navbar-brand topnav" href="/">JUNGLR</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    <li>
-                        <a href="#about">About</a>
-                    </li>
-                    <li>
-                        <a href="#services">Services</a>
-                    </li>
-                    <li>
-                        <a href="#contact">Contact</a>
-                    </li>
-                </ul>
-            </div>
+            {% include "nav_bar.html" %}
             <!-- /.navbar-collapse -->
         </div>
         <!-- /.container -->
     </nav>
+    <div class="background">
 {% block body %}
 {% endblock %}
-
+    </div>
+    {% include "copyright.html" %}
     <!-- jQuery -->
     <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
 
@@ -101,3 +78,5 @@
 </body>
 
 </html>
+
+<!-- <script src="redraw.js"></script> -->

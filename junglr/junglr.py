@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-     render_template, flash
+     render_template, flash, jsonify
 
 import config
 import control
@@ -9,15 +9,15 @@ import charts
 import player
 import requests
 import junglr_helpers
+import json
 
-# connection = pymongo.MongoClient('mongodb://junglr_user:password@localhost:27017/junglr')
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('JUNGLR_SETTINGS', silent=True)
 app.config['SECRET_KEY'] = 'secretkeygoeshere'
 
 rate_limiter = threads.rate_limiter(1, 1.2)
-sorted_champ_list = junglr_helpers.get_sorted_champ_list()
+# sorted_champ_list = junglr_helpers.get_sorted_champ_list()
 
 @app.route('/', methods = ['POST', 'GET'])
 def junglr():
@@ -44,40 +44,49 @@ def process():
 
 @app.route('/summoner/<username>', methods = ['POST', 'GET'])
 def summoner_analysis(username):
+	if username.startswith('{'):
+		return draw_chart()
 	summ_obj = check(username)
-	
-	#defaults
-	if 'chart_appearance' not in request.args:
-		chart_appearance = 'horizontal bar'
-		chart_type = 'First Dragon'
-		chart_wlt = 'wins'
-		sc_content = 'all'
-	else:
-		chart_appearance = request.args['chart_appearance']
-		chart_type = request.args['chart_type']
-		chart_wlt = request.args['chart_wlt']
-		print(request.args['sc_content'])
-		sc_content = list(request.args['sc_content'])
-
-	chart_uri = render_chart(username, 
-		chart_appearance, chart_type, chart_wlt, sc_content)
 	main_lane = resolve_bot_lane(summ_obj['mainLane'], 
 		summ_obj['mainRole'])
+	sorted_champ_list = charts.PlayerCharts(username).get_sorted_champ_list()
 	return render_template('analysis.html', 
 		**summ_obj,
 		main_lane = main_lane,
-		champ_list = sorted_champ_list,
-		graph = chart_uri)
+		champ_list = sorted_champ_list)
 
-@app.context_processor
-def utility_processor():
-	def render_chart(summoner_name, chart_appearance, chart_type, chart_wlt, sc_content):
-		chart = charts.PlayerCharts(summoner_name)
-		# return graph.firstDragon(chart_appearance, chart_type, chart_wlt).render_data_uri()
+@app.route('/contact', methods = ['GET'])
+def contact():
+	return render_template('contact.html')
+
+@app.route('/about', methods = ['GET'])
+def about():
+	return render_template('about.html')
+
+@app.route('/draw_chart', methods = ['POST'])
+def draw_chart():
+	try:
+		chart_info = request.json['info']
+		print(chart_info)
+		summoner_name = chart_info['summoner_name']
+		chart_appearance = chart_info['chart_appearance']
+		chart_season = chart_info['chart_season']
+		chart_type = chart_info['chart_type']
+		chart_wlt = chart_info['chart_wlt']
+		sc_content = chart_info['sc_content']
+		if type(chart_info['sc_content']) != list:
+			sc_content = [chart_info['sc_content']]
 		sc_type = 'Champions'
-		# sc_content = ['Vi', 'Jarvan IV', 'Volibear']
-		return chart.generate_chart(chart_appearance, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
-	return dict(render_chart=render_chart)
+
+		print('drawing chart')
+
+		chart = charts.PlayerCharts(summoner_name)
+		chart_object = chart.generate_chart(chart_appearance, chart_season, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
+		return chart_object
+	except Exception as e:
+		print('WHAT THE HELL JUST HAPPENED?!')
+		print(str(e))
+		return jsonify(status='ERROR',message=str(e))
 
 # helper functions
 def resolve_bot_lane(lane, role):
@@ -89,13 +98,6 @@ def resolve_bot_lane(lane, role):
 		else:
 			return 'AD CARRY'
 
-def render_chart(summoner_name, chart_appearance, chart_type, chart_wlt, sc_content):
-	chart = charts.PlayerCharts(summoner_name)
-	# return graph.firstDragon(chart_appearance, chart_type, chart_wlt).render_data_uri()
-	sc_type = 'Champions'
-	# sc_content = ['Vi', 'Jarvan IV', 'Volibear']
-	return chart.generate_chart(chart_appearance, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
-
 def check(username):
 	summ_obj = player.Player(username).read()
 	if not summ_obj:
@@ -103,4 +105,12 @@ def check(username):
 		return redirect(url_for('junglr'))
 	else:
 		return summ_obj
+
+def render_chart(summoner_name, chart_appearance, chart_type, chart_wlt, sc_content):
+	sc_type = 'Champions'
+	chart = charts.PlayerCharts(summoner_name)
+	return chart.generate_chart(chart_appearance, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
+
+if __name__ == "__main__":
+    application.run(host='0.0.0.0')
 	

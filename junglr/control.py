@@ -16,13 +16,13 @@ class PlayerUpdater():
         if valid:
             needs_update = (self.player.update_last_modified() == 'update')
             has_ranked_data = self.player.pull_match_list()
-            enough_data = self.enough_data()
             if needs_update and has_ranked_data: #make pull, but maybe not enough data
                 self.player.update()
-                action = 0 
-            elif not has_ranked_data or not enough_data: # doesn't have any ranked matches
+                action = 0
+            enough_data = self.enough_data()
+            if not has_ranked_data or not enough_data: # doesn't have any ranked matches
                 action = 3
-            else: # no update needed
+            elif not needs_update: # no update needed
                 action = 1
         else: # invalid summoner id
             action = 2
