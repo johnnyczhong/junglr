@@ -1,0 +1,140 @@
+<!-- analysis.html -->
+{% extends "layout.html" %}
+{% block body %}
+
+<script>
+    var app = angular.module("chartApp", []);
+
+    app.config(['$interpolateProvider', function($interpolateProvider) {
+      $interpolateProvider.startSymbol('{a');
+      $interpolateProvider.endSymbol('a}');
+    }]);
+
+    app.controller('chartController', function($scope, $http) {
+        $scope.svg = null
+        $scope.stats = {
+            name: '{{ summName }}',
+            league: '{{ league }}',
+            division: '{{ division }}',
+            mainChamp: '{{ mainChamp}}',
+            mainLane: '{{ main_lane }}'
+        }
+
+        $scope.chart_appearance = [
+            'Bar',
+            'Horizontal Bar',
+            'Stacked Bar'
+        ]
+
+        $scope.chart_season = [
+            'Season 2016'
+        ]
+
+        $scope.chart_type = [
+            'First Dragon',
+            'First Tower',
+            'Gold Advantage'
+        ]
+
+        $scope.chart_wlt = [
+            'Wins',
+            'Losses',
+            'Total',
+            'Wins and Losses',
+            'All'
+        ]
+
+        $scope.info = {
+            chart_appearance: $scope.chart_appearance[0],
+            chart_season: $scope.chart_season[0],
+            chart_type: $scope.chart_type[0],
+            chart_wlt: $scope.chart_wlt[4],
+            summoner_name: $scope.stats.name,
+            sc_content: $scope.stats.mainChamp
+        }
+
+        $scope.generate = function() {
+            $http({
+                method: 'POST',
+                url: '/draw_chart',
+                data: {
+                    info: $scope.info
+                }
+            }).then(function(response) {
+                $scope.info = {
+                    chart_appearance: $scope.info.chart_appearance,
+                    chart_type: $scope.info.chart_type,
+                    chart_wlt: $scope.info.chart_wlt,
+                    chart_season: $scope.info.chart_season,
+                    summoner_name: $scope.stats.name,
+                    sc_content: $scope.stats.mainChamp
+                };
+                $scope.svg = response.data;
+            }, function(error) {
+                console.log(error);
+            });
+        }
+
+        // functions to be run onload
+        window.onload = function() {
+            $scope.generate()
+        }
+    });
+</script>
+
+    <div class="content-section-a" ng-app="chartApp">
+        <div class="container" ng-controller="chartController">
+            <div class="row">
+                <div class="col-lg-4 col-sm-4">
+                    <h2 class="summoner-name" id="summ_name">{a stats.name a}</h2>
+                </div>
+                <div class="col-lg-8 col-sm-8">
+                    <h2 class="summoner-stats"> {a stats.league a} {a stats.division a} / {a stats.mainChamp a} / {a stats.mainLane a} </h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8 col-md-8 col-sm-push-4 col-sm-8 chart-object">
+                    <div class="chart" id="chart">
+                        <object type="image/svg+xml" data="{a svg a}">
+                            You've never played this champion!
+                        </object>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-pull-8 col-sm-4 chart-options">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading">Graph Options</h2>
+                    <div class="btn-group" role="group">
+                        <form class="chart-selections" ng-submit="generate()">
+                            <label for="chart-appearance" class="btn-desc">Display Type</label>
+                            <br>
+                            <select class="form-control chart-appearance" name="chart-appearance" id="chart-appearance" ng-model="info.chart_appearance" ng-options='ca for ca in chart_appearance'></select>
+                            <br>
+                            <label for="chart-type" class="btn-desc">Season</label>
+                            <br>
+                            <select class="form-control chart-season" name="chart-season" id="chart-season" ng-model="info.chart_season" ng-options='s for s in chart_season'></select>
+                            <label for="chart-type" class="btn-desc">Data</label>
+                            <br>
+                            <select class="form-control chart-type" name="chart-type" id="chart-type" ng-model="info.chart_type" ng-options='ct for ct in chart_type'></select>
+                            <br>
+                            <label class="btn-desc" for="chart-wlt">Win/Loss Filter</label>
+                            <br>
+                            <select class="form-control chart-wlt" name="chart-wlt" id="chart-wlt" ng-model="info.chart_wlt" ng-options='wlt for wlt in chart_wlt'></select>
+                            <br>
+                            <label for="sc-content" class="btn-desc">Selection Criteria</label>
+                            <br>
+                            <select multiple class="form-control" name="sc-content" id="sc-content" ng-model="info.sc_content">
+                            <!-- sorted list of champs by name -->
+                            {% for c in champ_list %}
+                                <option>{{ c }}</option>
+                            {% endfor %}
+                            </select>
+                            <div class="go-btn-spacer"></div>
+                            <input type=submit class="btn" value=Go!>
+                            <div class="go-btn-bottom"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>       
+    </div>
+{% endblock %}

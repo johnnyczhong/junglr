@@ -1,0 +1,56 @@
+/*
+ analysis-page.css
+*/
+
+
+.nav-search-form {
+    padding: 8px 12px 8px 12px;
+    width: auto;
+}
+
+.nav-search-form > input {
+    text-align: center;
+}
+
+.section-heading {
+	color: white;
+}
+
+.summoner-name,
+.summoner-stats {
+    text-align: center;
+    color: white;
+}
+
+.chart-options {
+    text-align: center;
+}
+
+.chart-appearance,
+.chart-type,
+.chart-wlt {
+    align-self: center;
+    width: auto;
+    display: inline-block;
+}
+
+.chart-selections {
+    text-align: center;
+}
+
+.btn-desc {
+	color: white;
+    padding-top: 5px;
+}
+
+.go-btn-spacer {
+    padding-top: 10px;
+}
+
+.go-btn-bottom {
+    padding-bottom: 20px;
+}
+
+/*@media(min-width:767px; max-width: 991) {
+
+}*/

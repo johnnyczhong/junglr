@@ -1,0 +1,37 @@
+learned - notes
+
+
+Flask
+=====
+
+
+AngularJS
+=========
+to change the interpolation of angularJS - 
+app.config(['$interpolateProvider', function($interpolateProvider) {
+  $interpolateProvider.startSymbol('{a');
+  $interpolateProvider.endSymbol('a}');
+}]);
+
+ng-options: "x for x in y" 
+	where x is an iterator and y is a list will iterate through the list and 
+	populate the list with those options
+
+controller structure - 
+	app.controller('controllerName', function($scope, $otherDependencies) {
+		$scope.vars = aDataType
+		$scope.functionName = function() {
+			doThingsHere
+		}
+	});
+
+HTML
+====
+html - svg: to insert - 
+<object type="image/svg+xml" data="{a svg a}">
+	You've never played this champion!
+</object>
+
+object - data tag - 
+	issue - data tag thinks the angularJS expression is a URL.
+	specifies a URL. probably need to tell html to not load a URL.

@@ -137,38 +137,3 @@ class api_request():
             url += 'by-summoner/{}/entry'.format(self.required_param)
         return url
 
-
-#used to parse the rate limit returned in the riot api response header: 'X-Rate-Limit-Count'
-#example: 'X-Rate-Limit-Count: 1:10,1:600'
-
-# used to handle response from http request
-class api_response():
-    def __init__(self, resp, rate_limited = True):
-        self.body = json.loads(resp.read().decode('utf-8'))
-        self.code = resp.getcode()
-        print(self.code)
-        self.header = dict(resp.info())
-        self.retry_after = False
-        self.rl = rate_limited
-        rl_header = 'X-Rate-Limit-Count'
-        if rl_header in self.header:
-            print(self.header[rl_header])
-
-    def get_rate_limits(self):
-        
-        rl_string = self.header[rl_header]
-        rl_list = rl_string.strip().split(',')
-        self.short_rate_limit = rl_list[0].strip().split(':')
-        self.long_rate_limit = rl_list[1].strip().split(':')
-        print(self.short_rate_limit, self.long_rate_limit)
-        if 'Retry-After' in self.header:
-            self.retry_after = self.header['Retry-After']
-            print(self.retry_after)
-
-
-
-
-
-
-
-

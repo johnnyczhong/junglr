@@ -1,0 +1,14 @@
+<!-- Actually, this should be the home page -->
+
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Start Analysis</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+  <form action="{{ url_for('add_summoner') }}" method=post>
+    <dl>
+      <dt>Summoner Name:
+      <input type=text name=summoner_name>
+      <input type=submit value=Go!>
+    </dl>
+  </form>
+{% endblock %}

@@ -1,0 +1,27 @@
+/* about-page.css */
+
+
+.lead {
+    font-size: 18px;
+    font-weight: 0;
+    color: white;
+}
+
+.about-content {
+	padding: 10% 10%;
+}
+
+.link-unstyled {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.link-unstyled:link {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.link-unstyled:hover {
+  color: inherit;
+  text-decoration: inherit;
+}

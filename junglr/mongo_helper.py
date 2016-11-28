@@ -8,8 +8,10 @@ import pymongo
 
 class Connection():
     def __init__(self):
-        self.connection = pymongo.MongoClient(config.localhost, config.port)
+        self.connection = pymongo.MongoClient(config.host, config.port)
         self.db = self.connection.junglr
+        self.db.authenticate(config.db_user, config.db_password)
+        # self.db = pymongo.MongoClient(uri)
 
     def insert(self, collection, obj_hash):
         db_collection = self.db[collection]
