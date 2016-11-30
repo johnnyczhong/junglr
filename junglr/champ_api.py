@@ -9,16 +9,18 @@ import mongo_helper
 #in: none
 #out: hash of all currently active champs. champ ids as keys mapped to champ names
 def Hash_Get_Champs_Static():
-	response = req_builder.api_request('champ_data_static', '')
-	champ_hash = response.body['data']
+	response = req_builder.api_request('champ_data_static', '').response
+	#champ_hash = response.body['data']
+	champ_hash = response
 	return champ_hash
 
 #in: aggregate champion name information
 #out: hash that can be used to populate champion database
 def Hash_Champ_ID_to_Name(champ_hash):
 	champ_ids_to_names = {}
-	for names in champ_hash.keys():
-		champ_data = champ_hash[names]
+	champ_data_hash = champ_hash['data']
+	for names in champ_data_hash.keys():
+		champ_data = champ_data_hash[names]
 		champ_id = champ_data['id']	
 		champ_name = champ_data['name']
 		champ_ids_to_names[champ_id] = champ_name
@@ -49,7 +51,7 @@ def main():
 		for k, v in api_champ_id_to_name.items():
 			if k not in db_champ_ids_list:
 				new_champs_list[str(k)] = {'name': v, 'id': k}
-	inserted = db_conn.update('static_data', {'document_name': 'champion_info'}, {'$set': new_champs_list}, force = True)
+	inserted = db_conn.update('static_data', {'document_name': 'champion_info'}, new_champs_list, force = True)
 	print(inserted)
 
 if __name__ == '__main__':

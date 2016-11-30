@@ -55,7 +55,7 @@ class api_request():
             abstracted = 'Not Found' # doesn't exist
         elif response.status_code == 200:
             abstracted = response.json() # valid response, return body
-            if response.headers['X-Rate-Limit-Count']:
+            if 'X-Rate-Limit-Count' in response.headers:
                 rate_limits = parse_rate_limits()
                 num_rate_limits = len(rate_limits)
                 for i in range(num_rate_limits):

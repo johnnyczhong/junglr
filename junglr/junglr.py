@@ -50,10 +50,7 @@ def summoner_analysis(username):
 	main_lane = resolve_bot_lane(summ_obj['mainLane'], 
 		summ_obj['mainRole'])
 	sorted_champ_list = charts.PlayerCharts(username).get_sorted_champ_list()
-	return render_template('analysis.html', 
-		**summ_obj,
-		main_lane = main_lane,
-		champ_list = sorted_champ_list)
+	return render_template('analysis.html', main_lane = main_lane, champ_list = sorted_champ_list, **summ_obj)
 
 @app.route('/contact', methods = ['GET'])
 def contact():
