@@ -140,17 +140,6 @@ class Player():
     def get_full_match_details(self):
         for m in self.info_hash['matchList']:
             match.Match_Details(m['matchId'], self.rate_limiter)
-        
-    #makes api data pull for basic summoner info: id, revisionDate
-    #compares api data and db data
-    # def basic_update(self):
-    #     db_action = 'no action'
-    #     response_code = self.pull_player_api_data()
-    #     if response_code == 'Not Found':
-    #         db_action = 'no action'
-    #     else:
-    #         db_action = self.update_last_modified()
-    #     return db_action
 
     def update_last_modified(self):
         self.summ_db_data = self.db_conn.find('summoners', {'summId': self.info_hash['summId']})

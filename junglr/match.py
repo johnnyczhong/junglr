@@ -73,7 +73,6 @@ class Match_Details():
 
     def make_rl_call(self, func, *args, **kwargs):
         retry = True
-        rl_message = 'Rate limit exceeded'
         while retry:
             self.rate_limiter.cv.acquire()
             self.rate_limiter.counter += 1

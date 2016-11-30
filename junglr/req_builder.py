@@ -55,19 +55,21 @@ class api_request():
             abstracted = 'Not Found' # doesn't exist
         elif response.status_code == 200:
             abstracted = response.json() # valid response, return body
-            if 'X-Rate-Limit-Count' in response.headers:
-                rate_limits = parse_rate_limits()
-                num_rate_limits = len(rate_limits)
-                for i in range(num_rate_limits):
-                    if rate_limits[i] == self.limits[i]:
-                        time.sleep(2) 
         elif response.status_code == 429 or response.code == 503 or response.code == 500:
             abstracted = 'Retry'
-            if 'Retry-After' in response.headers:
-                time.sleep(int(response.headers['Retry-After']) + 1) # secondary rate limiting, based off Riot API limits
-                print('RATE LIMITED')
-            else:
-                time.sleep(1) # annoying internal server rate limiting
+        if 'X-Rate-Limit-Count' in response.headers:
+            rate_limits = parse_rate_limits()
+            print(rate_limits)
+            num_rate_limits = len(rate_limits)
+            for i in range(num_rate_limits):
+                if rate_limits[i] == self.limits[i] - 1:
+                    time.sleep(10) 
+        if 'Retry-After' in response.headers:
+            time.sleep(int(response.headers['Retry-After']) + 2) # secondary rate limiting, based off Riot API limits
+            print('RATE LIMITED')
+        else:
+            time.sleep(1) # annoying internal server rate limiting
+        print(response.status_code)
         return abstracted
 
     def build_url(self):

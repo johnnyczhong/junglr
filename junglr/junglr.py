@@ -16,7 +16,8 @@ app.config.from_object(__name__)
 app.config.from_envvar('JUNGLR_SETTINGS', silent=True)
 app.config['SECRET_KEY'] = 'secretkeygoeshere'
 
-rate_limiter = threads.rate_limiter(1, 1.2)
+rate_limiter = threads.rate_limiter(10, 10)
+# rate_limiter.start()
 # sorted_champ_list = junglr_helpers.get_sorted_champ_list()
 
 @app.route('/', methods = ['POST', 'GET'])
