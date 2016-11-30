@@ -60,11 +60,11 @@ class api_request():
                 num_rate_limits = len(rate_limits)
                 for i in range(num_rate_limits):
                     if rate_limits[i] == self.limits[i]:
-                        time.sleep(1) 
+                        time.sleep(2) 
         elif response.status_code == 429 or response.code == 503 or response.code == 500:
             abstracted = 'Retry'
             if 'Retry-After' in response.headers:
-                time.sleep(response.headers['Retry-After'] + 1) # secondary rate limiting, based off Riot API limits
+                time.sleep(int(response.headers['Retry-After']) + 1) # secondary rate limiting, based off Riot API limits
                 print('RATE LIMITED')
             else:
                 time.sleep(1) # annoying internal server rate limiting
