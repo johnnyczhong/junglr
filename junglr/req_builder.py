@@ -49,6 +49,7 @@ class api_request():
                 split1.append(i.strip().split(':'))
             for i in split1:
                 num_calls.append(i[0])
+            num_calls = [int(x) for x in num_calls]
             return num_calls
 
         if response.status_code == 404:
@@ -62,14 +63,15 @@ class api_request():
             print(rate_limits)
             num_rate_limits = len(rate_limits)
             for i in range(num_rate_limits):
-                if rate_limits[i] == self.limits[i] - 1:
-                    time.sleep(10) 
+                if rate_limits[i] >= self.limits[i] - 2:
+                    time.sleep(4) 
+                    print('sleeping for 2')
         if 'Retry-After' in response.headers:
             time.sleep(int(response.headers['Retry-After']) + 2) # secondary rate limiting, based off Riot API limits
             print('RATE LIMITED')
         else:
             time.sleep(1) # annoying internal server rate limiting
-        print(response.status_code)
+        #print(response.status_code)
         return abstracted
 
     def build_url(self):

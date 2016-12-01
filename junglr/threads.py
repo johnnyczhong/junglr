@@ -13,16 +13,6 @@ class update_summoner(threading.Thread):
 		self.rate_limiter = rate_limiter
 		self.summ_name = summ_name
 
-	# def run(self):
-	# 	sn_quit = False
-	# 	while not sn_quit:
-	# 		summ_name = input('provide summoner name: ')
-	# 		if summ_name == 'q':
-	# 			sn_quit = True
-	# 			self.rate_limiter.quit()
-	# 		elif summ_name != '':
-	# 			self.process(summ_name)
-
 	def run(self):
 		summ = player.Player(self.summ_name)
 		summ.update(self.rate_limiter)
@@ -76,12 +66,23 @@ class rate_limiter(threading.Thread):
 				self.counter = 0
 				self.reset_time = time.time() + self.time_seconds #reset to current time
 				print('check lock reset counter at: ' + str(time.time()))
-		# print(self.counter)
+		print(self.counter)
 		return self.unlocked
 		
 	def quit(self):
 		self.stop = True
 
+
+class Singleton(object):
+    __instance = None
+    def __new__(cls, val):
+        if Singleton.__instance is None:
+            Singleton.__instance = object.__new__(cls)
+        Singleton.__instance.val = val
+        return Singleton.__instance
+
+
+### for testing ###
 def rl_test(rl):
 	now = time.time()
 	future = now + 20 #20 seconds
@@ -93,18 +94,8 @@ def rl_test(rl):
 		print(rl.counter)
 
 def main():
-	rl = rate_limiter(100, 10)
-	# rl.start()
-
-	rl_test(rl)
-
-	# update_thread = update_summoner(rate_limiter)
-	# update_thread.start()
-	# new_match = match_data_pull(rate_limiter)
-	# new_match.start()
-	# randoms = random_summoners(rate_limiter)
-	# randoms.start()
-
+    rl = Singleton(rate_limiter(10, 10)).val
+    rl.start()
 
 if __name__ == '__main__':
 	main()

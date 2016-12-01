@@ -14,11 +14,11 @@ import json
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('JUNGLR_SETTINGS', silent=True)
-app.config['SECRET_KEY'] = 'secretkeygoeshere'
+app.config['SECRET_KEY'] = config.secretkey
 
-rate_limiter = threads.rate_limiter(10, 10)
-# rate_limiter.start()
-# sorted_champ_list = junglr_helpers.get_sorted_champ_list()
+#from junglrDependencies import rate_limiter
+rate_limiter = threads.Singleton(threads.rate_limiter(1, 1.2)).val
+print(id(rate_limiter))
 
 @app.route('/', methods = ['POST', 'GET'])
 def junglr():
