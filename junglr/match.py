@@ -1,11 +1,7 @@
 import req_builder
 # used to get greatest value in dict
-import operator
-# thread access
-import threading
-import config
+# import operator
 import mongo_helper
-import time
 
 matches_collection = 'matches'
 summoners_collection = 'summoners'
@@ -13,9 +9,8 @@ summoners_collection = 'summoners'
 #one match pull
 #needs to be rate limited
 class Match_Details():
-    def __init__(self, match_id, rate_limiter):
+    def __init__(self, match_id):
         self.match_id = match_id
-        self.rate_limiter = rate_limiter
         self.info_hash = {}
         self.info_hash_list = (
             'matchId',
@@ -71,22 +66,10 @@ class Match_Details():
                 jobs()
             return True
 
-    def make_rl_call(self, func, *args, **kwargs):
-        retry = True
-        while retry:
-            self.rate_limiter.cv.acquire()
-            self.rate_limiter.counter += 1
-            self.rate_limiter.cv.wait_for(self.rate_limiter.check_lock, 10)
-            api_data = func(*args, **kwargs)
-            # print('Trying to get {} match details.'.format(self.match_id))
-            if api_data.response != 'Retry':
-                retry = False
-            self.rate_limiter.cv.release()
-        return api_data.response
-
     def pull_match_details(self):
-        api_response = self.make_rl_call(req_builder.api_request, 
-            'match_details', self.match_id, optional_params = {'includeTimeline': 'true'})
+        r = req_builder.api_request('match_details',
+                self.match_id, optional_params = {'includeTimeline': 'true'})
+        api_response = r.make_request()
         self.full_match_data = api_response
         return api_response
 

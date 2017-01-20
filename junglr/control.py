@@ -1,10 +1,10 @@
 import player
 
 class PlayerUpdater():
-    def __init__(self, summ_name, rate_limiter):
+    def __init__(self, summ_name):
         self.player = player.Player(summ_name)
-        self.player.rate_limiter = rate_limiter
-        print(id(self.player.rate_limiter))
+        #self.player.threader = threader
+        # print(id(self.player.rate_limiter))
         # self.rate_limiter = rate_limiter
 
     def run(self):

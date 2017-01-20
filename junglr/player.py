@@ -3,11 +3,8 @@
 
 import req_builder
 import operator
-import threading
 import config
 import mongo_helper
-import time
-import collections
 import match
 import copy as cp
 import numpy as np
@@ -21,8 +18,8 @@ class Player():
         self.match_list = []
         self.player_db_row = () #named tuple
         self.current_season = config.current_season
+        self.begin_time  = config.beginTime
         self.info_hash = {}
-        self.rate_limiter = None
         self.db_conn = mongo_helper.Connection()
 
     def read(self):
@@ -109,37 +106,41 @@ class Player():
         self.info_hash['matchList'] = get_match_list()
 
     def pull_match_list(self):
+        ranked_queues = '{},{}'.format(config.ranked_solo, config.ranked_flex)
         queue_type = {
-        'rankedQueues' : 'TEAM_BUILDER_DRAFT_RANKED_5x5', 
-        'seasons' : self.current_season
+        'rankedQueues' : ranked_queues,
+        'beginTime': self.begin_time
+        #'seasons' : self.current_season
         }
-        api_data = self.make_rl_call(req_builder.api_request, 'match_list', self.info_hash['summId'], optional_params = queue_type)
-        match_list_data = api_data
+        r = req_builder.api_request('match_list', self.info_hash['summId'], optional_params = queue_type)
+        match_list_data = r.make_request()
         if (match_list_data != {} and 
             match_list_data['totalGames'] != 0):
             self.match_list = match_list_data['matches']
-            k = 'Total_Games_{}'.format(queue_type['seasons'])
+            #k = 'Total_Games_{}'.format(queue_type['seasons'])
+            k = 'Total_Games'
             v = match_list_data['totalGames']
             self.info_hash[k] = v
         else:
             self.match_list = None
-        return api_data
+        return match_list_data
 
     # determine ranked league statistics
     def set_league(self):
-        was_set = False
-        league_data_req = self.make_rl_call(req_builder.api_request, 'league_entry', self.info_hash['summId'])
-        if league_data_req != 'Not Found':
-            league_data = league_data_req[str(self.info_hash['summId'])][0]
+        league_set = False
+        r = req_builder.api_request('league_entry', self.info_hash['summId'])
+        league_data_response = r.make_request()
+        if league_data_response != 'Not Found':
+            league_data = league_data_response[str(self.info_hash['summId'])][0]
             self.info_hash['league'] = league_data['tier']
             self.info_hash['division'] = league_data['entries'][0]['division']
-            was_set = True
-        return was_set
+            league_set = True
+        return league_set
 
     # get each match's details, rate limited
     def get_full_match_details(self):
         for m in self.info_hash['matchList']:
-            match.Match_Details(m['matchId'], self.rate_limiter)
+            match.Match_Details(m['matchId']) # self.rate_limiter)
 
     def update_last_modified(self):
         self.summ_db_data = self.db_conn.find('summoners', {'summId': self.info_hash['summId']})
@@ -148,21 +149,10 @@ class Player():
             db_action = 'update'
         return db_action
 
-    def make_rl_call(self, func, *args, **kwargs):
-        retry = True
-        rl_message = 'Rate limit exceeded'
-        while retry:
-            self.rate_limiter.cv.acquire()
-            self.rate_limiter.counter += 1
-            self.rate_limiter.cv.wait_for(self.rate_limiter.check_lock, 10)
-            api_data = func(*args, **kwargs)
-            if api_data.response != 'Retry':
-                retry = False
-            self.rate_limiter.cv.release()
-        return api_data.response
-
     def pull_player_api_data(self):
-        api_data = self.make_rl_call(req_builder.api_request, 'summ_name_to_id', self.summ_name)
+        # api_data = self.make_rl_call(req_builder.api_request, 'summ_name_to_id', self.summ_name)
+        r = req_builder.api_request('summ_name_to_id', self.summ_name)
+        api_data = r.make_request()
         if api_data != 'Not Found':
             self.info_hash['summId'] = api_data[self.summ_name]['id']
             self.info_hash['summNameLower'] = self.summ_name
@@ -258,7 +248,8 @@ class Player():
 
     # place match analysis results into hash that will be pushed into mongodb
     def compile_player_stats(self):
-        base_stats_name = '{}Stats'.format(self.current_season)
+        # base_stats_name = '{}Stats'.format(self.current_season)
+        base_stats_name = 'Stats'
         self.info_hash[base_stats_name] = self.base_stats
 
     # walk through given match and compile data for match analysis
