@@ -16,18 +16,14 @@
             name: '{{ summName }}',
             league: '{{ league }}',
             division: '{{ division }}',
-            mainChamp: '{{ mainChamp}}',
+            mainChamp: '{{ mainChamp }}',
             mainLane: '{{ main_lane }}'
         }
 
         $scope.chart_appearance = [
             'Bar',
             'Horizontal Bar',
-            'Stacked Bar'
-        ]
-
-        $scope.chart_season = [
-            'Season 2016'
+            //'Stacked Bar'
         ]
 
         $scope.chart_type = [
@@ -46,7 +42,6 @@
 
         $scope.info = {
             chart_appearance: $scope.chart_appearance[0],
-            chart_season: $scope.chart_season[0],
             chart_type: $scope.chart_type[0],
             chart_wlt: $scope.chart_wlt[4],
             summoner_name: $scope.stats.name,
@@ -61,14 +56,6 @@
                     info: $scope.info
                 }
             }).then(function(response) {
-                $scope.info = {
-                    chart_appearance: $scope.info.chart_appearance,
-                    chart_type: $scope.info.chart_type,
-                    chart_wlt: $scope.info.chart_wlt,
-                    chart_season: $scope.info.chart_season,
-                    summoner_name: $scope.stats.name,
-                    sc_content: $scope.stats.mainChamp
-                };
                 $scope.svg = response.data;
             }, function(error) {
                 console.log(error);
@@ -89,7 +76,10 @@
                     <h2 class="summoner-name" id="summ_name">{a stats.name a}</h2>
                 </div>
                 <div class="col-lg-8 col-sm-8">
-                    <h2 class="summoner-stats"> {a stats.league a} {a stats.division a} / {a stats.mainChamp a} / {a stats.mainLane a} </h2>
+                    <h2 class="summoner-stats"> 
+                        {a stats.league a} {a stats.division a} / 
+                        {a stats.mainLane a} 
+                    </h2>
                 </div>
             </div>
             <div class="row">
@@ -109,11 +99,8 @@
                             <br>
                             <select class="form-control chart-appearance" name="chart-appearance" id="chart-appearance" ng-model="info.chart_appearance" ng-options='ca for ca in chart_appearance'></select>
                             <br>
-                            <label for="chart-type" class="btn-desc">Season</label>
-                            <br>
-                            <select class="form-control chart-season" name="chart-season" id="chart-season" ng-model="info.chart_season" ng-options='s for s in chart_season'></select>
                             <label for="chart-type" class="btn-desc">Data</label>
-                            <br>
+                            <br> 
                             <select class="form-control chart-type" name="chart-type" id="chart-type" ng-model="info.chart_type" ng-options='ct for ct in chart_type'></select>
                             <br>
                             <label class="btn-desc" for="chart-wlt">Win/Loss Filter</label>

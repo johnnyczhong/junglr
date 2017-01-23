@@ -52,8 +52,9 @@ class task_processing(threading.Thread):
 	# otherwise, processing is not locked. 
 	def check_lock(self):
 		unlocked = True
-		exceed_call_limit = (self.counter >= self.calls)
+		exceed_call_limit = (self.counter >= self.calls - 1)
 		if exceed_call_limit:
+			print(self.counter)
 			unlocked = False
 		while not unlocked or (time.time() >= self.reset_time): # loop until lock can be opened
 			if time.time() >= self.reset_time: # check if enough time has elapsed to reset

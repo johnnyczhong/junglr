@@ -1,3 +1,5 @@
+# filename: req_builder.py
+
 # purpose: build http requests for information from main
 # make call to riot api
 # parse information from riot (json)
@@ -5,70 +7,61 @@
 # need something to be in the way of the player_api 
 
 #can be separated out to import only what's necessary later
-from config import api_key 
-import requests
+import config
+from urllib.parse import urlencode
+import socket
 import urllib.response
 import json
-import time
+
+TCP_IP = 'localhost'
+TCP_PORT = 8001
+BUFFER_SIZE = 4096 # 4kb
 
 #could look into subclassing, but this will do for now.
 class api_request():
+
     def __init__(self, req_type, required_param, optional_params = {}, region = 'na', rate_limited = True):
         self.req_type = req_type
         self.required_param = urllib.parse.quote(str(required_param))
         self.optional_params = optional_params
-        self.optional_params['api_key'] = api_key
+        self.optional_params['api_key'] = config.api_key
         self.region = region
         self.header = False
-        self.limits = (10, 500)
-        self.rate_limited = rate_limited
+        # self.rate_limited = rate_limited
         self.url = self.build_url()
-        self.make_request()
-
+    
     def make_request(self):
-        response = requests.get(self.url, params = self.optional_params) #request object, create header?
-        clean_response = self.handle_response(response)
-        self.response = clean_response
+        msg = str(len(self.url)) + ':' + self.url + ',' # construct netstring
+        netstring = msg.encode('utf-8') # encode netstring as bytes
 
-    # something to analyze response and provide a standard error message?
-    # actions:
-    # 404: return 'Not Found'
-    # 503: sleep 1s, return 'Retry'
-    # 429 without 'Retry-After': sleep 1s, return 'Retry'
-    # 429 with 'Retry-After': sleep for retry timer, return 'Retry'
-    # 200: return response body
-    # 500: return 'Server Error'?
-    def handle_response(self, response):
+        # establish sockets
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(config.timeout)
+        s.connect((TCP_IP, TCP_PORT))
+        s.send(netstring)
 
-        # returns (num_calls in 10 seconds, num_calls in 600 seconds)
-        def parse_rate_limits():
-            num_calls = []
-            split1 = []
-            split0 = response.headers['X-Rate-Limit-Count'].strip().split(',')
-            for i in split0:
-                split1.append(i.strip().split(':'))
-            for i in split1:
-                num_calls.append(i[0])
-            return num_calls
+        # get first chunk and figure out size of message
+        bdata = s.recv(BUFFER_SIZE)
+        data = bdata.decode('utf-8') # decode bytes
+        size = data.split(':', 1)[0] # unpack netstring for size of incoming
+        size = int(size)
 
-        if response.status_code == 404:
-            abstracted = 'Not Found' # doesn't exist
-        elif response.status_code == 200:
-            abstracted = response.json() # valid response, return body
-            if response.headers['X-Rate-Limit-Count']:
-                rate_limits = parse_rate_limits()
-                num_rate_limits = len(rate_limits)
-                for i in range(num_rate_limits):
-                    if rate_limits[i] == self.limits[i]:
-                        time.sleep(1) 
-        elif response.status_code == 429 or response.code == 503 or response.code == 500:
-            abstracted = 'Retry'
-            if 'Retry-After' in response.headers:
-                time.sleep(response.headers['Retry-After'] + 1) # secondary rate limiting, based off Riot API limits
-                print('RATE LIMITED')
-            else:
-                time.sleep(1) # annoying internal server rate limiting
-        return abstracted
+        # keep receiving stream until done
+        while len(bdata) < size:
+            bdata += s.recv(BUFFER_SIZE)
+
+        # close socket
+        s.close()
+        
+        
+        ddata = bdata.decode('utf-8') # decode full message
+        data = ddata.split(':', 1)[1] # split and get message
+        contents = json.loads(data[:-1]) # decode json, exclude trailing comma
+        
+        if 'status' in contents:
+            contents = contents['status']['message']
+        
+        return contents
 
     def build_url(self):
         url = ''
@@ -87,14 +80,16 @@ class api_request():
             url = self.match_url()
         elif self.req_type in league_req:
             url = self.league_url()
-        return url
+        parse = urlencode(self.optional_params)
+        joined = '{}?{}'.format(url, parse)
+        return joined
 
     #game-v1.3
     def game_url(self):
         version = 'v1.3'
-        url = 'https://{0}.api.pvp.net/api/lol/{0}/{1}/game/'.format(self.region, version)
+        url = 'https://{0}.api.pvp.net/api/lol/{0}/{1}/game'.format(self.region, version)
         if self.req_type == 'game_req':
-            url += 'by-summoner/{0}/recent'.format(self.required_param)
+            url += '/by-summoner/{0}/recent'.format(self.required_param)
 
     #summoner-v1.4
     def summ_url(self):
@@ -114,8 +109,13 @@ class api_request():
         url = 'https://global.api.pvp.net/api/lol/static-data/{0}/{1}/champion/'.format(self.region, version)
         if self.req_type == 'champ_name':
             url += self.required_param
+
+        # not really necessary to track this here
+        """
         elif self.req_type == 'champ_data_static': 
             self.rate_limited = False
+        """
+
         return url
 
     #not really related, but since the riot api has no other groupings right now, this makes sense.
