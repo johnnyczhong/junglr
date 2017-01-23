@@ -25,8 +25,10 @@
 - [x] frontend website
 
 This project uses resources from:
+- StartBootStrap Landing Page: https://github.com/BlackrockDigital/startbootstrap-landing-page - A great thanks to @BlackrockDigital for their work. 
+- Noisy Net: https://subtlepatterns.com/noisy-net by Tom McArdle (http://twitter.com/_mcrdl) licensed under CC BY-SA 3.0.
+
 StartBootStrap Landing Page: https://github.com/BlackrockDigital/startbootstrap-landing-page - A great thanks to @BlackrockDigital for their work. 
 Noisy Net: https://subtlepatterns.com/noisy-net by Tom McArdle (http://twitter.com/_mcrdl) licensed under CC BY-SA 3.0.
 
 currently available at http://ec2-54-67-110-160.us-west-1.compute.amazonaws.com
-
