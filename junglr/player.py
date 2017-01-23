@@ -110,14 +110,12 @@ class Player():
         queue_type = {
         'rankedQueues' : ranked_queues,
         'beginTime': self.begin_time
-        #'seasons' : self.current_season
         }
         r = req_builder.api_request('match_list', self.info_hash['summId'], optional_params = queue_type)
         match_list_data = r.make_request()
         if (match_list_data != {} and 
             match_list_data['totalGames'] != 0):
             self.match_list = match_list_data['matches']
-            #k = 'Total_Games_{}'.format(queue_type['seasons'])
             k = 'Total_Games'
             v = match_list_data['totalGames']
             self.info_hash[k] = v
@@ -127,10 +125,12 @@ class Player():
 
     # determine ranked league statistics
     def set_league(self):
-        league_set = False
         r = req_builder.api_request('league_entry', self.info_hash['summId'])
         league_data_response = r.make_request()
-        if league_data_response != 'Not Found':
+        #if 'status' in league_data_response and league_data_response['status']['status_code'] == 404: 
+        if league_data_response == 'Not Found': #404
+            league_set = False
+        else:
             league_data = league_data_response[str(self.info_hash['summId'])][0]
             self.info_hash['league'] = league_data['tier']
             self.info_hash['division'] = league_data['entries'][0]['division']
@@ -150,7 +150,6 @@ class Player():
         return db_action
 
     def pull_player_api_data(self):
-        # api_data = self.make_rl_call(req_builder.api_request, 'summ_name_to_id', self.summ_name)
         r = req_builder.api_request('summ_name_to_id', self.summ_name)
         api_data = r.make_request()
         if api_data != 'Not Found':
@@ -248,7 +247,6 @@ class Player():
 
     # place match analysis results into hash that will be pushed into mongodb
     def compile_player_stats(self):
-        # base_stats_name = '{}Stats'.format(self.current_season)
         base_stats_name = 'Stats'
         self.info_hash[base_stats_name] = self.base_stats
 

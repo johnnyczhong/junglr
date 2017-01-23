@@ -64,7 +64,7 @@ class Match_Details():
             job_list = self.frame_job_list if self.has_frames else self.no_frame_job_list
             for jobs in job_list:
                 jobs()
-            return True
+        return True
 
     def pull_match_details(self):
         r = req_builder.api_request('match_details',

@@ -12,7 +12,6 @@ from urllib.parse import urlencode
 import socket
 import urllib.response
 import json
-from sys import getsizeof
 
 TCP_IP = 'localhost'
 TCP_PORT = 8001
@@ -48,7 +47,7 @@ class api_request():
         size = int(size)
 
         # keep receiving stream until done
-        while getsizeof(bdata) < size:
+        while len(bdata) < size:
             bdata += s.recv(BUFFER_SIZE)
 
         # close socket
@@ -58,6 +57,10 @@ class api_request():
         ddata = bdata.decode('utf-8') # decode full message
         data = ddata.split(':', 1)[1] # split and get message
         contents = json.loads(data[:-1]) # decode json, exclude trailing comma
+        
+        if 'status' in contents:
+            contents = contents['status']['message']
+        
         return contents
 
     def build_url(self):

@@ -4,24 +4,19 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 
 import config
 import control
-# import threads
 import charts
 import player
-# import requests
 import junglr_helpers
 import json
+import re
+
+regex_match = '^[0-9a-z _\\.]+$'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('JUNGLR_SETTINGS', silent=True)
 app.config['SECRET_KEY'] = config.secretkey
 
-#from junglrDependencies import rate_limiter
-#rate_limiter = threads.Singleton(threads.rate_limiter(1, 1.2)).val
-#print(id(rate_limiter))
-
-# create threader
-# threader = threads.Singleton(threads.threader).val
 
 @app.route('/', methods = ['POST', 'GET'])
 def junglr():
@@ -31,9 +26,14 @@ def junglr():
 @app.route('/process', methods = ['POST', 'GET'])
 def process():
     summoner_name = request.form['username'].lower()
-    summ = control.PlayerUpdater(summoner_name) # rate_limiter)
+    r = re.fullmatch(regex_match, summoner_name)
+    if r is None:
+        flash('Invalid Summoner Name!')
+        return redirect(url_for('junglr'))
+
+    summ = control.PlayerUpdater(summoner_name) 
     status = summ.run()
-    if status == 2: # check for errors
+    if status == 2: # check for existence
         flash('Invalid Summoner Name!')
         goto = url_for('junglr')
     elif status == 3: # don't display charts
@@ -44,7 +44,7 @@ def process():
     else: # unknown error?
         flash('No bueno!')
         goto = url_for('junglr')
-        return redirect(goto)
+    return redirect(goto)
 
 @app.route('/summoner/<username>', methods = ['POST', 'GET'])
 def summoner_analysis(username):
@@ -68,24 +68,18 @@ def about():
 def draw_chart():
     try:
         chart_info = request.json['info']
-        print(chart_info)
         summoner_name = chart_info['summoner_name']
         chart_appearance = chart_info['chart_appearance']
-        chart_season = chart_info['chart_season']
         chart_type = chart_info['chart_type']
         chart_wlt = chart_info['chart_wlt']
         sc_content = chart_info['sc_content']
         if type(chart_info['sc_content']) != list:
-            sc_content = [chart_info['sc_content']]
+            sc_content = chart_info['sc_content']
         sc_type = 'Champions'
-
-	# print('drawing chart')
         chart = charts.PlayerCharts(summoner_name)
-        chart_object = chart.generate_chart(chart_appearance, chart_season, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
+        chart_object = chart.generate_chart(chart_appearance, chart_type, sc_type, sc_content, chart_wlt).render_data_uri()
         return chart_object
     except Exception as e:
-        # print('WHAT THE HELL JUST HAPPENED?!')
-        # print(str(e))
         return jsonify(status='ERROR',message=str(e))
 
 # helper functions
